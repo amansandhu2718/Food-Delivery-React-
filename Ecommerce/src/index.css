@@ -1,0 +1,54 @@
+@import url("https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html,
+body,
+#root,
+.app,
+.content {
+  height: 100%;
+  width: 100%;
+  font-family: "SourceSans3", sans-serif;
+  /* background-color: aqua; */
+  overflow-x: hidden;
+}
+.content {
+  width: 100% !important;
+}
+.app {
+  display: flex;
+  position: relative;
+  width: 100%;
+  /* background-color: red; */
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background-color: #e0e0e0;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #888;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #7478b1 inset !important; /* 👈 your desired background */
+  -webkit-text-fill-color: #ffffff; /* text color */
+  caret-color: #ffffff;
+  transition: background-color 5000s ease-in-out 0s;
+  background-color: rgb(90, 2, 255);
+}
