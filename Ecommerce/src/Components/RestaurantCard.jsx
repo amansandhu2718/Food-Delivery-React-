@@ -169,7 +169,8 @@ const RestaurantCard = memo(({ restaurant }) => {
         sx={{
           position: "relative",
           width: "100%",
-          pt: "56.25%" /* 16:9 Aspect Ratio */,
+          aspectRatio: "1/1",
+          // pt: "56.25%" /* 16:9 Aspect Ratio */,
         }}
       >
         <CardMedia
@@ -214,7 +215,7 @@ const RestaurantCard = memo(({ restaurant }) => {
 
       {/* Content */}
       <CardContent
-        sx={{ flexGrow: 1, display: "flex", flexDirection: "column", p: 2 }}
+        sx={{ flexGrow: 1, display: "flex", flexDirection: "column", p: 1 }}
       >
         <Box
           display="flex"
@@ -226,7 +227,7 @@ const RestaurantCard = memo(({ restaurant }) => {
             variant="h6"
             fontWeight={700}
             sx={{
-              lineHeight: 1.2,
+              lineHeight: 1,
               overflow: "hidden",
               textOverflow: "ellipsis",
               display: "-webkit-box",

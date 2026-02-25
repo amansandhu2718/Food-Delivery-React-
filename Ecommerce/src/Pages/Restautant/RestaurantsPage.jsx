@@ -312,13 +312,23 @@ function RestaurantsPage() {
       // Filter by Category/Cuisine
       if (selectedCategory) {
         // Check if cuisine array contains the category (case-insensitive)
-        const hasCuisine = r.cuisine?.some(c => c.toLowerCase() === selectedCategory.toLowerCase());
+        const hasCuisine = r.cuisine?.some(
+          (c) => c.toLowerCase() === selectedCategory.toLowerCase(),
+        );
         if (!hasCuisine) return false;
       }
 
       return true;
     });
-  }, [restaurantsData, rating4Plus, pureVeg, offers, fastDelivery, openNow, selectedCategory]);
+  }, [
+    restaurantsData,
+    rating4Plus,
+    pureVeg,
+    offers,
+    fastDelivery,
+    openNow,
+    selectedCategory,
+  ]);
 
   /* =======================
      UI
@@ -393,7 +403,12 @@ function RestaurantsPage() {
           </Grid>
 
           {/* APPLIED FILTERS */}
-          {(rating4Plus || pureVeg || offers || fastDelivery || openNow || selectedCategory) && (
+          {(rating4Plus ||
+            pureVeg ||
+            offers ||
+            fastDelivery ||
+            openNow ||
+            selectedCategory) && (
             <>
               <Divider sx={{ my: 2 }} />
               <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -446,24 +461,30 @@ function RestaurantsPage() {
       <Container
         maxWidth="lg"
         sx={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 2,
+          // display: "flex",
+          // flexWrap: "wrap",
+          // gap: 2,
+          // justifyContent: "center",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(185px,1fr))",
           justifyContent: "center",
+          gap: "20px",
         }}
       >
         {filteredRestaurants.map((restaurant) => (
           <Box
             key={restaurant.id}
-            sx={{
-              minWidth: 260,
-              width: {
-                xs: "100%",
-                sm: "45%",
-                md: "30%",
-                lg: "22%",
-              },
-            }}
+            sx={
+              {
+                // minWidth: 260,
+                // width: {
+                //   xs: "100%",
+                //   sm: "45%",
+                //   md: "30%",
+                //   lg: "22%",
+                // },
+              }
+            }
           >
             <RestaurantCard restaurant={restaurant} />
           </Box>
