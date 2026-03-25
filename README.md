@@ -18,8 +18,7 @@ A scalable, full-stack food delivery platform that seamlessly connects hungry us
 
 Screenshots:
 
-![Image](https://github.com/user-attachments/assets/4b873979-f98c-4488-9adc-2ed2e0b2daf3)
-
+![Image](https://github.com/user-attachments/assets/d5b283e1-dea0-401a-8f61-478262305881)
 
 # API Endpoints Documentation
 
