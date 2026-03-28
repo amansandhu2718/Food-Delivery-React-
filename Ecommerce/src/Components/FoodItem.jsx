@@ -6,7 +6,8 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import api from "../utils/api";
 
-const DEFAULT_FOOD_IMAGE = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400";
+const DEFAULT_FOOD_IMAGE =
+  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400";
 
 const getOptimizedImageUrl = (url) => {
   if (!url || typeof url !== "string" || url.trim() === "") {
@@ -22,11 +23,13 @@ const getOptimizedImageUrl = (url) => {
   return url;
 };
 
-const FoodItem = memo(({ dish, onFavoriteToggle }) => {
+const FoodItem = memo(({ dish, onFavoriteToggle, isFavoriteparam }) => {
   const theme = useTheme();
   const colors = GetColors(theme.palette.mode);
   const navigate = useNavigate();
-  const [isFavorite, setIsFavorite] = useState(dish.isFavorite || false);
+  const [isFavorite, setIsFavorite] = useState(
+    dish.isFavorite || isFavoriteparam,
+  );
 
   const handleClick = () => {
     if (dish.restaurantId) {
@@ -41,7 +44,7 @@ const FoodItem = memo(({ dish, onFavoriteToggle }) => {
     try {
       const res = await api.post("/api/favorites/toggle", {
         productId: dish.id,
-        restaurantId: dish.restaurantId
+        restaurantId: dish.restaurantId,
       });
       setIsFavorite(res.data.isFavorite);
       if (onFavoriteToggle) onFavoriteToggle();

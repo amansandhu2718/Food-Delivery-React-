@@ -71,21 +71,41 @@ const ManageRestaurants = () => {
 
     const themeData = {
         mt: 3,
-        "& .MuiDataGrid-root": { border: "none" },
-        "& .MuiDataGrid-cell": { borderBottom: "none" },
-        "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: colors.primary[400],
-            borderBottom: "none",
+        border: "none",
+        "& .MuiDataGrid-root": {
+            border: "none",
+        },
+        "& .MuiDataGrid-cell": {
+            borderBottom: "1px solid " + theme.palette.divider,
+            color: "text.primary",
+            fontWeight: 500,
+        },
+        "& .MuiDataGrid-columnHeader": {
+            backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.02)",
+            borderBottom: "2px solid " + theme.palette.primary.main,
+            color: "text.primary",
+            fontWeight: 900,
+            textTransform: "uppercase",
+            letterSpacing: "0.1em",
         },
         "& .MuiDataGrid-virtualScroller": {
-            backgroundColor: theme.palette.mode === "dark" ? colors.primary[400] : colors.grey[100],
+            backgroundColor: "transparent",
         },
         "& .MuiDataGrid-footerContainer": {
-            borderTop: "none",
-            backgroundColor: colors.primary[400],
+            borderTop: "1px solid " + theme.palette.divider,
+            backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.01)",
         },
         "& .MuiCheckbox-root": {
-            color: `${colors.greenAccent[200]} !important`,
+            color: theme.palette.primary.main + " !important",
+        },
+        "& .MuiDataGrid-row:hover": {
+            backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "rgba(1, 128, 41, 0.04)",
+        },
+        "& .MuiDataGrid-row.Mui-selected": {
+            backgroundColor: theme.palette.mode === "dark" ? "rgba(1, 128, 41, 0.2)" : "rgba(1, 128, 41, 0.08)",
+            "&:hover": {
+                backgroundColor: theme.palette.mode === "dark" ? "rgba(1, 128, 41, 0.3)" : "rgba(1, 128, 41, 0.12)",
+            }
         },
     };
 

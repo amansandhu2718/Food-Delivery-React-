@@ -125,8 +125,11 @@ const getOptimizedImageUrl = (url) => {
 };
 
 const RestaurantCard = memo(({ restaurant }) => {
+  const chipStyle = (active, theme) => ({
+  bgcolor: active ? theme.palette.primary.main : "background.paper",
+  color: active ? "white" : "text.secondary",
+  });
   const theme = useTheme();
-  let colors = GetColors(theme.palette.mode);
   const navigate = useNavigate();
   const {
     id,
@@ -148,6 +151,7 @@ const RestaurantCard = memo(({ restaurant }) => {
 
   return (
     <Card
+      onClick={handleViewMenu}
       sx={{
         width: "100%",
         height: "100%",
@@ -155,12 +159,14 @@ const RestaurantCard = memo(({ restaurant }) => {
         flexDirection: "column",
         borderRadius: "16px",
         overflow: "hidden",
+        cursor: "pointer",
         boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
         transition:
           "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease",
+        bgcolor: "background.paper",
         "&:hover": {
           transform: "translateY(-8px)",
-          boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+          boxShadow: theme.palette.mode === "dark" ? "0 12px 30px rgba(0,0,0,0.4)" : "0 12px 30px rgba(0,0,0,0.12)",
         },
       }}
     >
@@ -242,7 +248,7 @@ const RestaurantCard = memo(({ restaurant }) => {
           <Box
             display="flex"
             alignItems="center"
-            bgcolor={colors.greenAccent[500]}
+            bgcolor="primary.main"
             px={0.8}
             py={0.2}
             borderRadius="4px"
@@ -277,12 +283,12 @@ const RestaurantCard = memo(({ restaurant }) => {
             mb: 1,
           }}
         >
-          {cuisine.join(", ")}
+          {cuisine?.join(", ") || "Global Cuisine"}
         </Typography>
 
         <Box display="flex" alignItems="center" gap={0.5} mb={1.5}>
           <LocationOnOutlinedIcon
-            sx={{ fontSize: 16, color: colors.grey[300] }}
+            sx={{ fontSize: 16, color: "text.secondary" }}
           />
           <Typography
             variant="body2"
@@ -304,7 +310,7 @@ const RestaurantCard = memo(({ restaurant }) => {
         >
           <Box display="flex" alignItems="center" gap={0.5}>
             <AccessTimeOutlinedIcon
-              sx={{ fontSize: 18, color: colors.blueAccent[500] }}
+              sx={{ fontSize: 18, color: "secondary.main" }}
             />
             <Typography variant="caption" fontWeight="600">
               {deliveryTime} mins
@@ -314,7 +320,7 @@ const RestaurantCard = memo(({ restaurant }) => {
           <Typography
             variant="caption"
             fontWeight="700"
-            color={colors.grey[100]}
+            color="text.secondary"
           >
             ₹{priceForTwo} FOR TWO
           </Typography>

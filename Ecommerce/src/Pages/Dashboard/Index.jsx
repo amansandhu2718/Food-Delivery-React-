@@ -2,7 +2,9 @@ import {
   Box,
   Button,
   IconButton,
+  Paper,
   Snackbar,
+  Stack,
   Typography,
   useMediaQuery,
   useTheme,
@@ -15,23 +17,24 @@ import EmailIcon from "@mui/icons-material/Email";
 import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import TrafficIcon from "@mui/icons-material/Traffic";
-import { GetColors } from "../../utils/Theme";
 import LineChart from "./../../Components/LineChar";
 
 import PieChart from "./../../Components/PieChart";
 import BarChart from "../../Components/BarChart";
 import Transactions from "../../Components/CustomList";
-import {
-  mockBarData,
-  mockLineData,
-  mockTransactions,
-} from "../../Data/mockData";
-import { mockPieData } from "../../Data/mockData";
+
 import { useRef, useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import html2canvas from "html2canvas";
 import { io } from "socket.io-client";
+import { useSelector } from "react-redux";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
+import CloseIcon from "@mui/icons-material/Close";
+
 import { getAccessToken } from "../../utils/authService";
+import { useNavigate } from "react-router-dom";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 
 const StyledBox = styled(Box)(({ theme }) => ({
   borderRadius: "10px",
@@ -42,8 +45,26 @@ const StyledBox = styled(Box)(({ theme }) => ({
 
 const Dashboard = () => {
   const theme = useTheme();
-  const colors = GetColors(theme.palette.mode);
+
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const compactActions = useMediaQuery(theme.breakpoints.down("sm"));
+  const { user } = useSelector((state) => state.auth);
+  const userRole = user?.role?.toUpperCase();
+
+  const [actionLoading, setActionLoading] = useState(null);
+
+  const toolbarBtnSx = {
+    borderRadius: "999px",
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    fontWeight: 800,
+    fontSize: compactActions ? "0.8rem" : "0.8rem",
+    letterSpacing: "0.04em",
+    py: 1.25,
+    px: 2.25,
+    minHeight: 44,
+    width: "100%",
+    justifyContent: "center",
+  };
 
   const [open, setOpen] = useState(false);
   const [stats, setStats] = useState({
@@ -84,23 +105,24 @@ const Dashboard = () => {
   }, []);
 
   const takeScreenshot = async () => {
-    console.log("button clicked");
-    // if (!captureRef.current) return;
-    const canvas = await html2canvas(document.body);
-    console.log("button clicked 1");
-
-    // const canvas = await html2canvas(captureRef.current, {
-    //   scale: window.devicePixelRatio,
-    //   useCORS: true,
-    // });
-
-    const image = canvas.toDataURL("image/png");
-
-    const link = document.createElement("a");
-    link.href = image;
-    link.download = "screenshot.png";
-    link.click();
-    setOpen(true);
+    setActionLoading("journal");
+    try {
+      const canvas = await html2canvas(document.body, {
+        scale: Math.min(window.devicePixelRatio || 1, 2),
+        useCORS: true,
+      });
+      const image = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = "dashboard-journal.png";
+      link.click();
+      setOpen(true);
+    } catch (e) {
+      console.error(e);
+      alert("Could not capture the page. Try again.");
+    } finally {
+      setActionLoading(null);
+    }
   };
   const handleClose = (event, reason) => {
     if (reason === "clickaway") {
@@ -109,63 +131,73 @@ const Dashboard = () => {
 
     setOpen(false);
   };
-  const action = (
-    <>
-      <IconButton
-        size="small"
-        aria-label="close"
-        color="inherit"
-        onClick={handleClose}
-      >
-        {/* <CloseIcon fontSize="small" /> */}
-      </IconButton>
-    </>
+  const snackbarAction = (
+    <IconButton
+      size="small"
+      aria-label="close"
+      color="inherit"
+      onClick={handleClose}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
   );
 
   return (
-    <Box
-      sx={{
-        m: 3,
-      }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          width: "100%",
-        }}
+    <Box sx={{ m: { xs: 2, sm: 3 } }}>
+      <Stack
+        direction={{ xs: "column", lg: "row" }}
+        spacing={2}
+        alignItems={{ xs: "stretch", lg: "flex-start" }}
+        justifyContent="space-between"
+        sx={{ width: "100%", mb: 2 }}
       >
-        <Header title="DASHBOARD" subtitle="Welcome to your Dashboard " />
-        <Box>
+        <Box sx={{ flex: "1 1 auto", minWidth: 0 }}>
+          <Header title="DASHBOARD" subtitle="Welcome to your Dashboard " />
+        </Box>
+
+        <Paper elevation={0}>
           <Button
             sx={{
-              backgroundColor: colors.primary[400],
-              color: colors.Font[400],
-              fontSize: "14px",
-              fontWeight: "bold",
-              padding: "10px 20px",
-              whiteSpace: "nowrap",
+              p: { xs: 1.25, sm: 1.5 },
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              bgcolor:
+                theme.palette.mode === "dark"
+                  ? "rgba(255,255,255,0.04)"
+                  : "grey.50",
+              width: { xs: "100%", lg: "min(100%, 240px)" },
+              flexShrink: 0,
+              alignSelf: { xs: "stretch", lg: "flex-start" },
             }}
+            variant="contained"
+            color="primary"
+            disableElevation
             onClick={takeScreenshot}
+            disabled={actionLoading !== null}
+            loading={actionLoading === "journal"}
+            startIcon={<DownloadoutlinedIcon sx={{ fontSize: 18 }} />}
+            sx={{
+              ...toolbarBtnSx,
+              gridColumn:
+                userRole === "SUPER_ADMIN"
+                  ? undefined
+                  : { sm: "span 2", md: "span 1" },
+            }}
           >
-            <DownloadoutlinedIcon
-              sx={{
-                mr: "10px",
-              }}
-            />
-            Download Report
+            {compactActions ? "Journal" : "Download journal"}
           </Button>
+        </Paper>
+      </Stack>
 
-          <Snackbar
-            open={open}
-            autoHideDuration={3000}
-            onClose={handleClose}
-            message="Screenshot Captured"
-            action={action}
-          />
-        </Box>
-      </Box>
+      <Snackbar
+        open={open}
+        autoHideDuration={4000}
+        onClose={handleClose}
+        message="Journal image saved"
+        action={snackbarAction}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
 
       {/* GRID */}
       <Box
@@ -177,118 +209,144 @@ const Dashboard = () => {
           gridGap: "12px",
         }}
       >
-        {/* Row 1  */}
-        <Box
-          sx={{
-            gridColumn: isMobile ? "span 12" : "span 3",
-            backgroundColor: colors.primary[400],
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Stats
-            title={`₹${Number(stats.totalSales).toLocaleString()}`}
-            subtitle="Total Sales"
-            progress={75}
-            increase="+12%"
-            icon={
-              <PointOfSaleIcon
-                sx={{
-                  color: colors.greenAccent[500],
-                  fontSize: "26px",
-                }}
+        {/* Row 1: Only show for ADMIN and SUPER_ADMIN */}
+        {userRole !== "REST_OWNER" && (
+          <>
+            <Box
+              sx={{
+                gridColumn: isMobile ? "span 12" : "span 3",
+                backgroundColor: theme.palette.background.paper,
+                borderRadius: "32px",
+                border:
+                  "1px solid " +
+                  (theme.palette.mode === "dark"
+                    ? "rgba(255,255,255,0.05)"
+                    : "rgba(0,0,0,0.05)"),
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Stats
+                title={`₹${Number(stats.totalSales).toLocaleString()}`}
+                subtitle="Total Sales"
+                progress={75}
+                increase="+12%"
+                icon={
+                  <PointOfSaleIcon
+                    sx={{ color: "primary.main", fontSize: "26px" }}
+                  />
+                }
               />
-            }
-          />
-        </Box>
-        <Box
-          sx={{
-            gridColumn: isMobile ? "span 12" : "span 3",
-            backgroundColor: colors.primary[400],
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Stats
-            title={stats.totalOrders}
-            subtitle="Orders Received"
-            progress={55}
-            increase="+5%"
-            icon={
-              <TrafficIcon
-                sx={{
-                  color: colors.greenAccent[500],
-                  fontSize: "26px",
-                }}
+            </Box>
+            <Box
+              sx={{
+                gridColumn: isMobile ? "span 12" : "span 3",
+                backgroundColor: theme.palette.background.paper,
+                borderRadius: "32px",
+                border:
+                  "1px solid " +
+                  (theme.palette.mode === "dark"
+                    ? "rgba(255,255,255,0.05)"
+                    : "rgba(0,0,0,0.05)"),
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Stats
+                title={stats.totalOrders}
+                subtitle="Orders Received"
+                progress={55}
+                increase="+5%"
+                icon={
+                  <TrafficIcon
+                    sx={{ color: "primary.main", fontSize: "26px" }}
+                  />
+                }
               />
-            }
-          />
-        </Box>
-        <Box
-          sx={{
-            gridColumn: isMobile ? "span 12" : "span 3",
-            backgroundColor: colors.primary[400],
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Stats
-            title={stats.totalCustomers}
-            subtitle="Total Customers"
-            progress={55}
-            increase="+10%"
-            icon={
-              <PersonAddIcon
-                sx={{
-                  color: colors.greenAccent[500],
-                  fontSize: "26px",
-                }}
+            </Box>
+            <Box
+              sx={{
+                gridColumn: isMobile ? "span 12" : "span 3",
+                backgroundColor: theme.palette.background.paper,
+                borderRadius: "32px",
+                border:
+                  "1px solid " +
+                  (theme.palette.mode === "dark"
+                    ? "rgba(255,255,255,0.05)"
+                    : "rgba(0,0,0,0.05)"),
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Stats
+                title={stats.totalCustomers}
+                subtitle="Total Customers"
+                progress={55}
+                increase="+10%"
+                icon={
+                  <PersonAddIcon
+                    sx={{ color: "primary.main", fontSize: "26px" }}
+                  />
+                }
               />
-            }
-          />
-        </Box>
-        <Box
-          sx={{
-            gridColumn: isMobile ? "span 12" : "span 3",
-            backgroundColor: colors.primary[400],
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Stats
-            title={stats.totalUsers || "0"}
-            subtitle="Total Registered Users"
-            progress={75}
-            increase="+5%"
-            icon={
-              <TrafficIcon
-                sx={{
-                  color: colors.greenAccent[500],
-                  fontSize: "26px",
-                }}
+            </Box>
+            <Box
+              sx={{
+                gridColumn: isMobile ? "span 12" : "span 3",
+                backgroundColor: theme.palette.background.paper,
+                borderRadius: "32px",
+                border:
+                  "1px solid " +
+                  (theme.palette.mode === "dark"
+                    ? "rgba(255,255,255,0.05)"
+                    : "rgba(0,0,0,0.05)"),
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Stats
+                title={stats.totalUsers || "0"}
+                subtitle="Registered Users"
+                progress={75}
+                increase="+5%"
+                icon={
+                  <TrafficIcon
+                    sx={{ color: "primary.main", fontSize: "26px" }}
+                  />
+                }
               />
-            }
-          />
-        </Box>
+            </Box>
+          </>
+        )}
 
-        {/* Row 2 */}
+        {/* Row 2: Charts and Transactions */}
         <Box
           sx={{
-            gridColumn: isMobile ? "span 12" : "span 8",
+            gridColumn: isMobile
+              ? "span 12"
+              : userRole === "REST_OWNER"
+                ? "span 12"
+                : "span 8",
             gridRow: "span 2",
-            backgroundColor: colors.primary[400],
+            backgroundColor: theme.palette.background.paper,
+            borderRadius: "32px",
+            border:
+              "1px solid " +
+              (theme.palette.mode === "dark"
+                ? "rgba(255,255,255,0.05)"
+                : "rgba(0,0,0,0.05)"),
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
           <LineChart
-            backgroundColor={colors.Font[500]}
-            fontColor={colors.Font[200]}
+            bgColor={theme.palette.background.paper}
+            fontColor={theme.palette.text.secondary}
             data={lineData}
             isDashboard={true}
           />
@@ -297,61 +355,98 @@ const Dashboard = () => {
           sx={{
             gridColumn: isMobile ? "span 12" : "span 4",
             gridRow: "span 2",
-            backgroundColor: colors.primary[400],
+            backgroundColor: theme.palette.background.paper,
+            borderRadius: "32px",
+            border:
+              "1px solid " +
+              (theme.palette.mode === "dark"
+                ? "rgba(255,255,255,0.05)"
+                : "rgba(0,0,0,0.05)"),
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Transactions data={recentTransactions} title="Recent Transactions" />
+          <Transactions
+            data={recentTransactions}
+            title="Recent Orders"
+            emptyError="No Recent Transactions"
+          />
         </Box>
-        {/* Row 3 */}
 
+        {/* Row 3: Insights - Only Pie for Owners, hide global charts */}
         <Box
           sx={{
             gridColumn: isMobile ? "span 12" : "span 4",
             gridRow: "span 2",
-            backgroundColor: colors.primary[400],
+            backgroundColor: theme.palette.background.paper,
+            borderRadius: "32px",
+            border:
+              "1px solid " +
+              (theme.palette.mode === "dark"
+                ? "rgba(255,255,255,0.05)"
+                : "rgba(0,0,0,0.05)"),
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
           <PieChart
-            bgColor={colors.Font[300]}
-            fontColor={colors.Font[400]}
+            bgColor={theme.palette.background.paper}
+            fontColor={theme.palette.text.secondary}
             data={pieData.slice(0, 3)}
             isDashboard={true}
           />
         </Box>
-        <Box
-          sx={{
-            gridColumn: isMobile ? "span 12" : "span 4",
-            gridRow: "span 2",
-            backgroundColor: colors.primary[400],
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Transactions data={recentComplaints} title="Complaints from users" />
-        </Box>
-        <StyledBox
-          sx={{
-            gridColumn: isMobile ? "span 12" : "span 4",
-            gridRow: "span 2",
-            backgroundColor: colors.primary[400],
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <BarChart
-            data={barData}
-            bgColor={colors.Font[300]}
-            fontColor={colors.Font[400]}
-          />
-        </StyledBox>
+
+        {userRole !== "REST_OWNER" && (
+          <>
+            <Box
+              sx={{
+                gridColumn: isMobile ? "span 12" : "span 4",
+                gridRow: "span 2",
+                backgroundColor: theme.palette.background.paper,
+                borderRadius: "32px",
+                border:
+                  "1px solid " +
+                  (theme.palette.mode === "dark"
+                    ? "rgba(255,255,255,0.05)"
+                    : "rgba(0,0,0,0.05)"),
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Transactions
+                data={recentComplaints}
+                title="Complaints from users"
+                emptyError="No Recent Complaints"
+              />
+            </Box>
+            <StyledBox
+              sx={{
+                gridColumn: isMobile ? "span 12" : "span 4",
+                gridRow: "span 2",
+                backgroundColor: theme.palette.background.paper,
+                borderRadius: "32px",
+                border:
+                  "1px solid " +
+                  (theme.palette.mode === "dark"
+                    ? "rgba(255,255,255,0.05)"
+                    : "rgba(0,0,0,0.05)"),
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <BarChart
+                data={barData}
+                bgColor={theme.palette.background.paper}
+                fontColor={theme.palette.text.secondary}
+              />
+            </StyledBox>
+          </>
+        )}
       </Box>
     </Box>
   );

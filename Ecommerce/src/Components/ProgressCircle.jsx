@@ -1,9 +1,7 @@
 import { Box, useTheme } from "@mui/material";
-import { GetColors } from "../utils/Theme";
 
 export default function ProgressCircle({ progress = 0.75, size = 40 }) {
   const theme = useTheme();
-  const colors = GetColors(theme.palette.mode);
 
   const angle = Math.min(Math.max(progress / 100, 0), 1) * 360;
 
@@ -15,12 +13,12 @@ export default function ProgressCircle({ progress = 0.75, size = 40 }) {
         borderRadius: "50%",
         background: `
           radial-gradient(
-            ${colors.primary[400]} 55%,
+            ${theme.palette.background.paper} 55%,
             transparent 56%
           ),
           conic-gradient(
-            ${colors.greenAccent[500]} ${angle}deg,
-            ${colors.primary[400]} 0deg
+            ${theme.palette.primary.main} ${angle}deg,
+            ${theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} 0deg
           )
         `,
       }}

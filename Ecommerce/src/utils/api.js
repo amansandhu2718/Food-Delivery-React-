@@ -37,7 +37,7 @@ api.interceptors.response.use(
         const resp = await axios.post(
           BASE_URL + "/api/auth/refresh",
           {},
-          { withCredentials: true }
+          { withCredentials: true },
         );
         const newToken = resp.data?.accessToken;
         if (newToken) {
@@ -53,7 +53,12 @@ api.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
+
+export const loginUser = async (credentials) => {
+  const res = await api.post("/api/auth/login", credentials);
+  return res.data;
+};
 
 export default api;

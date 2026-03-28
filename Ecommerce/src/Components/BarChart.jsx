@@ -1,15 +1,21 @@
 import { ResponsiveBar } from "@nivo/bar";
-
 import { Box, useTheme } from "@mui/material";
-import { GetColors } from "../utils/Theme";
 
 export default function BarChart({
   data,
-  fontColor = "#ff0000",
-  bgColor = "#0000ff",
-  graphColorTheme = "set3", //category10,pastel2,purpleRed_green
+  fontColor,
+  bgColor,
   isDashboard = false,
 }) {
+  const theme = useTheme();
+  
+  const colors = [
+    theme.palette.primary.main,
+    theme.palette.secondary.main,
+    theme.palette.primary.light,
+    "#064e3b", // Emerald 900
+  ];
+
   return (
     <Box
       sx={{
@@ -17,49 +23,49 @@ export default function BarChart({
         height: "100%",
       }}
     >
-      <ResponsiveBar /* or Bar for fixed dimensions */
-        colors={{ scheme: graphColorTheme }}
+      <ResponsiveBar
+        colors={colors}
         keys={["burger", "kebab", "donut"]} // REQUIRED
         theme={{
           tooltip: {
             container: {
-              color: bgColor,
+              color: theme.palette.mode === "dark" ? "#ffffff" : "#171717",
+              background: theme.palette.background.paper,
             },
           },
           grid: {
             line: {
-              stroke: fontColor,
+              stroke: fontColor || theme.palette.divider,
               strokeWidth: 1,
             },
           },
           axis: {
             domain: {
               line: {
-                stroke: fontColor,
+                stroke: fontColor || theme.palette.text.secondary,
               },
             },
             legend: {
               text: {
-                fill: fontColor,
+                fill: fontColor || theme.palette.text.secondary,
               },
             },
             ticks: {
               line: {
-                stroke: fontColor,
+                stroke: fontColor || theme.palette.text.secondary,
               },
               text: {
-                fill: fontColor,
+                fill: fontColor || theme.palette.text.secondary,
               },
             },
           },
-
           legends: {
             text: {
-              fill: fontColor,
+              fill: fontColor || theme.palette.text.secondary,
             },
           },
         }}
-        layout="vertical" // 👈 forces bottom-to-top animation
+        layout="vertical"
         data={data}
         indexBy="country"
         labelSkipWidth={12}
@@ -76,7 +82,7 @@ export default function BarChart({
           },
         ]}
         axisBottom={{
-          legend: isDashboard ? undefined : "country (indexBy)",
+          legend: isDashboard ? undefined : "country",
           legendOffset: 32,
         }}
         axisLeft={{

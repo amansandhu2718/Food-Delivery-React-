@@ -28,15 +28,12 @@ import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import api from "../../utils/api";
-import { GetColors } from "../../utils/Theme";
-import { useLoginInfo } from "../../utils/CustomHooks";
+import { useSelector } from "react-redux";
 
 function ProfilePage() {
   const theme = useTheme();
-  const colors = GetColors(theme.palette.mode);
-  const [loginInfo, setLoginInfo] = useLoginInfo();
+  const { isAuthenticated, user: loginInfo } = useSelector((state) => state.auth);
   const fileInputRef = useRef(null);
-
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
@@ -72,10 +69,9 @@ function ProfilePage() {
 
   const handleUpdateName = async () => {
     try {
-      const res = await api.put("/api/auth/profile", { name: newName });
-      setLoginInfo(res.data.user);
+      await api.put("/api/auth/profile", { name: newName });
+      alert("Name updated successfully!");
       setIsEditingName(false);
-      alert("Name updated successfully");
     } catch (err) {
       console.error("Failed to update name", err);
       alert("Failed to update name");
@@ -90,10 +86,9 @@ function ProfilePage() {
     uploadData.append("image", file);
 
     try {
-      const res = await api.put("/api/auth/profile", uploadData, {
+      await api.put("/api/auth/profile", uploadData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setLoginInfo(res.data.user);
       alert("Profile image updated");
     } catch (err) {
       console.error("Failed to upload image", err);
@@ -148,7 +143,8 @@ function ProfilePage() {
   };
 
   const handleDelete = async (addressId) => {
-    if (!window.confirm("Are you sure you want to delete this address?")) return;
+    if (!window.confirm("Are you sure you want to delete this address?"))
+      return;
 
     try {
       await api.delete(`/api/addresses/${addressId}`);
@@ -171,7 +167,7 @@ function ProfilePage() {
         (error) => {
           console.error("Error getting location", error);
           alert("Unable to get your location");
-        }
+        },
       );
     } else {
       alert("Geolocation is not supported by your browser.");
@@ -180,41 +176,62 @@ function ProfilePage() {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="50vh"
+      >
         <CircularProgress />
       </Box>
     );
   }
 
   const profileImageUrl = loginInfo?.profile_image
-    ? (loginInfo.profile_image.startsWith('http') ? loginInfo.profile_image : `http://localhost:5001${loginInfo.profile_image}`)
+    ? loginInfo.profile_image.startsWith("http")
+      ? loginInfo.profile_image
+      : `http://localhost:5001${loginInfo.profile_image}`
     : null;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" fontWeight={700} mb={4}>
+      <Typography variant="h4" fontWeight={900} mb={4} sx={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         My Profile
       </Typography>
 
       {/* Profile Details Card */}
-      <Card sx={{ mb: 4, boxShadow: 3, borderRadius: '12px' }}>
-        <CardContent>
-          <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} alignItems="center" gap={4}>
+      <Card sx={{ mb: 4, bgcolor: "background.paper", borderRadius: "32px", border: "1px solid " + (theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)") }}>
+        <CardContent sx={{ p: 4 }}>
+          <Box
+            display="flex"
+            flexDirection={{ xs: "column", sm: "row" }}
+            alignItems="center"
+            gap={4}
+          >
             <Box position="relative">
               <Avatar
                 src={profileImageUrl}
-                sx={{ width: 120, height: 120, fontSize: '3rem', bgcolor: colors.primary[500] }}
+                sx={{
+                  width: 140,
+                  height: 140,
+                  fontSize: "3.5rem",
+                  bgcolor: "primary.main",
+                  fontWeight: 800,
+                  border: "4px solid " + theme.palette.background.paper,
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+                }}
               >
                 {loginInfo?.name?.charAt(0)}
               </Avatar>
               <IconButton
                 sx={{
                   position: "absolute",
-                  bottom: 0,
-                  right: 0,
-                  bgcolor: colors.greenAccent[500],
-                  "&:hover": { bgcolor: colors.greenAccent[600] },
-                  color: "white"
+                  bottom: 5,
+                  right: 5,
+                  bgcolor: "secondary.main",
+                  "&:hover": { bgcolor: "secondary.dark" },
+                  color: "white",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
                 }}
                 onClick={() => fileInputRef.current.click()}
               >
@@ -230,7 +247,7 @@ function ProfilePage() {
             </Box>
 
             <Box flex={1}>
-              <Box display="flex" alignItems="center" gap={1} mb={1}>
+              <Box display="flex" alignItems="center" gap={1} mb={0.5}>
                 {isEditingName ? (
                   <>
                     <TextField
@@ -238,94 +255,143 @@ function ProfilePage() {
                       onChange={(e) => setNewName(e.target.value)}
                       size="small"
                       autoFocus
+                      sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }}
                     />
                     <IconButton color="success" onClick={handleUpdateName}>
                       <CheckIcon />
                     </IconButton>
-                    <IconButton color="error" onClick={() => { setIsEditingName(false); setNewName(loginInfo.name); }}>
+                    <IconButton
+                      color="error"
+                      onClick={() => {
+                        setIsEditingName(false);
+                        setNewName(loginInfo?.name || "");
+                      }}
+                    >
                       <CloseIcon />
                     </IconButton>
                   </>
                 ) : (
                   <>
-                    <Typography variant="h5" fontWeight={700}>
+                    <Typography variant="h4" fontWeight={900} sx={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       {loginInfo?.name}
                     </Typography>
-                    <IconButton size="small" onClick={() => setIsEditingName(true)}>
+                    <IconButton
+                      size="small"
+                      onClick={() => setIsEditingName(true)}
+                    >
                       <EditIcon fontSize="small" />
                     </IconButton>
                   </>
                 )}
               </Box>
-              <Typography variant="body1" color="text.secondary" mb={1}>
+              <Typography variant="body1" color="text.secondary" fontWeight={600} mb={2}>
                 {loginInfo?.email}
               </Typography>
               <Chip
-                label={loginInfo?.role}
+                label={loginInfo?.role || "USER"}
                 size="small"
-                sx={{ bgcolor: colors.primary[500], color: "white", fontWeight: "bold" }}
+                sx={{
+                  bgcolor: "primary.main",
+                  color: "white",
+                  fontWeight: 900,
+                  px: 2,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  fontSize: "0.65rem",
+                }}
               />
             </Box>
           </Box>
         </CardContent>
       </Card>
 
-      <Divider sx={{ mb: 4 }} />
+      <Divider sx={{ mb: 6, opacity: 0.1 }} />
 
       {/* Addresses Card */}
-      <Card sx={{ mb: 4, boxShadow: 3, borderRadius: '12px' }}>
-        <CardContent>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-            <Typography variant="h6" fontWeight={600}>
+      <Card sx={{ mb: 4, bgcolor: "background.paper", borderRadius: "32px", border: "1px solid " + (theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)") }}>
+        <CardContent sx={{ p: 4 }}>
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={4}
+          >
+            <Typography variant="h5" fontWeight={800} sx={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Saved Addresses
             </Typography>
             <Button
               variant="contained"
+              disableElevation
               startIcon={<AddIcon />}
               onClick={() => handleOpenDialog()}
-              sx={{ bgcolor: colors.greenAccent[500], "&:hover": { bgcolor: colors.greenAccent[600] } }}
+              sx={{
+                bgcolor: "primary.main",
+                borderRadius: "100px",
+                px: 3,
+                py: 1,
+                fontWeight: 800,
+                "&:hover": { bgcolor: "primary.dark" },
+              }}
             >
               Add Address
             </Button>
           </Box>
 
           {addresses.length === 0 ? (
-            <Alert severity="info" sx={{ borderRadius: '8px' }}>No addresses saved. Add your first address!</Alert>
+            <Alert severity="info" sx={{ borderRadius: "16px", fontWeight: 600 }}>
+              No addresses saved. Add your first address!
+            </Alert>
           ) : (
-            <Grid container spacing={2}>
+            <Grid container spacing={3}>
               {addresses.map((address) => (
                 <Grid item xs={12} sm={6} md={4} key={address.id}>
                   <Card
                     sx={{
-                      p: 2,
-                      height: '100%',
-                      border: address.isDefault ? `2px solid ${colors.greenAccent[500]}` : "1px solid",
-                      borderColor: address.isDefault ? colors.greenAccent[500] : "divider",
+                      p: 3,
+                      height: "100%",
+                      bgcolor: address.isDefault ? "rgba(1, 128, 41, 0.03)" : "background.default",
+                      border: address.isDefault
+                        ? `2px solid ${theme.palette.primary.main}`
+                        : "1px solid " + (theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"),
                       position: "relative",
-                      borderRadius: '10px'
+                      borderRadius: "24px",
+                      transition: "all 0.3s ease",
+                      "&:hover": { transform: "translateY(-4px)" },
                     }}
                   >
                     {address.isDefault && (
                       <Chip
-                        label="Default"
+                        label="DEFAULT"
                         size="small"
-                        color="success"
-                        sx={{ position: "absolute", top: 8, right: 8 }}
+                        sx={{ 
+                            position: "absolute", 
+                            top: 16, 
+                            right: 16, 
+                            bgcolor: "primary.main", 
+                            color: "white",
+                            fontWeight: 900,
+                            fontSize: "0.6rem"
+                        }}
                       />
                     )}
                     <Box display="flex" alignItems="start" mb={1}>
-                      <LocationOnIcon color="primary" sx={{ mr: 1, mt: 0.5 }} />
+                      <LocationOnIcon sx={{ color: "primary.main", mr: 1.5, mt: 0.5 }} />
                       <Box flex={1}>
                         {address.label && (
-                          <Typography variant="subtitle2" fontWeight={600} mb={0.5}>
+                          <Typography
+                            variant="subtitle1"
+                            fontWeight={800}
+                            mb={0.5}
+                            sx={{ color: "text.primary" }}
+                          >
                             {address.label}
                           </Typography>
                         )}
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" color="text.secondary" fontWeight={500} sx={{ lineHeight: 1.6 }}>
                           {address.addressLine}
                         </Typography>
                         {(address.city || address.state || address.pincode) && (
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" color="text.secondary" fontWeight={600}>
                             {[address.city, address.state, address.pincode]
                               .filter(Boolean)
                               .join(", ")}
@@ -333,18 +399,18 @@ function ProfilePage() {
                         )}
                       </Box>
                     </Box>
-                    <Box display="flex" gap={1} mt={2}>
+                    <Box display="flex" gap={1} mt={3}>
                       <IconButton
                         size="small"
                         onClick={() => handleOpenDialog(address)}
-                        color="primary"
+                        sx={{ color: "text.secondary", "&:hover": { color: "primary.main" } }}
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
                       <IconButton
                         size="small"
                         onClick={() => handleDelete(address.id)}
-                        color="error"
+                        sx={{ color: "text.secondary", "&:hover": { color: "error.main" } }}
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
@@ -358,18 +424,31 @@ function ProfilePage() {
       </Card>
 
       {/* Add/Edit Address Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: "32px", p: 2 }
+        }}
+      >
         <form onSubmit={handleSubmit}>
-          <DialogTitle>
-            {editingAddress ? "Edit Address" : "Add New Address"}
+          <DialogTitle sx={{ fontWeight: 900, fontSize: "1.5rem" }}>
+            {editingAddress ? "Edit Journal Entry" : "New Archive Point"}
           </DialogTitle>
           <DialogContent>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 3, pt: 1 }}
+            >
               <TextField
                 label="Label (e.g., Home, Office)"
                 value={formData.label}
-                onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, label: e.target.value })
+                }
                 fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }}
               />
               <TextField
                 label="Address Line"
@@ -380,31 +459,41 @@ function ProfilePage() {
                 required
                 fullWidth
                 multiline
-                rows={2}
+                rows={3}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }}
               />
               <Grid container spacing={2}>
                 <Grid item xs={6}>
                   <TextField
                     label="City"
                     value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, city: e.target.value })
+                    }
                     fullWidth
+                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }}
                   />
                 </Grid>
                 <Grid item xs={6}>
                   <TextField
                     label="State"
                     value={formData.state}
-                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, state: e.target.value })
+                    }
                     fullWidth
+                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }}
                   />
                 </Grid>
               </Grid>
               <TextField
                 label="Pincode"
                 value={formData.pincode}
-                onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, pincode: e.target.value })
+                }
                 fullWidth
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }}
               />
               <Button
                 type="button"
@@ -412,6 +501,14 @@ function ProfilePage() {
                 startIcon={<LocationOnIcon />}
                 onClick={handleGetLocation}
                 fullWidth
+                sx={{ 
+                    borderRadius: "100px", 
+                    py: 1.5, 
+                    fontWeight: 800,
+                    borderColor: "primary.main",
+                    color: "primary.main",
+                    "&:hover": { borderColor: "primary.dark", bgcolor: "rgba(1, 128, 41, 0.04)" }
+                }}
               >
                 Get Current Location
               </Button>
@@ -423,16 +520,29 @@ function ProfilePage() {
                   onChange={(e) =>
                     setFormData({ ...formData, isDefault: e.target.checked })
                   }
+                  style={{ width: 18, height: 18, cursor: "pointer" }}
                 />
-                <label htmlFor="isDefaultProfile" style={{ marginLeft: 8 }}>
+                <label htmlFor="isDefaultProfile" style={{ marginLeft: 12, fontWeight: 700, fontSize: "0.9rem", cursor: "pointer" }}>
                   Set as default address
                 </label>
               </Box>
             </Box>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
-            <Button type="submit" variant="contained">
+          <DialogActions sx={{ p: 4 }}>
+            <Button onClick={handleCloseDialog} sx={{ fontWeight: 800, color: "text.secondary" }}>Cancel</Button>
+            <Button 
+                type="submit" 
+                variant="contained" 
+                disableElevation
+                sx={{ 
+                    borderRadius: "100px", 
+                    px: 6, 
+                    py: 1.5, 
+                    fontWeight: 900,
+                    bgcolor: "secondary.main",
+                    "&:hover": { bgcolor: "secondary.dark" }
+                }}
+            >
               {editingAddress ? "Update" : "Add"}
             </Button>
           </DialogActions>

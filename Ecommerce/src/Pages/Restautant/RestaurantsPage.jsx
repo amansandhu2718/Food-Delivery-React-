@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Typography,
   Box,
@@ -8,225 +8,17 @@ import {
   useTheme,
   Divider,
   Stack,
+  InputBase,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import SearchIcon from "@mui/icons-material/Search";
 import { useSearchParams } from "react-router-dom";
 
-import RestaurantCard from "../../Components/RestaurantCard";
-import LocationSelector from "../../Components/LocationSelector";
-import { GetColors } from "../../utils/Theme";
-import { useEffect } from "react";
-
-/* =======================
-   DATA
-======================= */
-
-// const restaurantsData = [
-//   {
-//     id: 1,
-//     name: "Spice Garden",
-//     image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5",
-//     rating: 4.4,
-//     cuisine: ["North Indian", "Chinese"],
-//     location: "Indiranagar, Bangalore",
-//     deliveryTime: 30,
-//     priceForTwo: 600,
-//     isOpen: true,
-//     isVeg: true,
-//     hasOffer: true,
-//   },
-//   {
-//     id: 2,
-//     name: "Burger Hub",
-//     image: "https://images.unsplash.com/photo-1551782450-a2132b4ba21d",
-//     rating: 4.2,
-//     cuisine: ["Burgers", "Fast Food"],
-//     location: "Koramangala, Bangalore",
-//     deliveryTime: 25,
-//     priceForTwo: 500,
-//     isOpen: false,
-//     isVeg: false,
-//     hasOffer: false,
-//   },
-//   {
-//     id: 3,
-//     name: "Italiano",
-//     image: "https://images.unsplash.com/photo-1525755662778-989d0524087e",
-//     rating: 4.6,
-//     cuisine: ["Italian", "Pizza"],
-//     location: "Whitefield, Bangalore",
-//     deliveryTime: 35,
-//     priceForTwo: 800,
-//     isOpen: true,
-//     isVeg: false,
-//     hasOffer: true,
-//   },
-//   {
-//     id: 4,
-//     name: "Spice Garden",
-//     image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5",
-//     rating: 4.4,
-//     cuisine: ["North Indian", "Chinese"],
-//     location: "Indiranagar, Bangalore",
-//     deliveryTime: 30,
-//     priceForTwo: 600,
-//     isOpen: true,
-//     isVeg: true,
-//     hasOffer: true,
-//   },
-//   {
-//     id: 5,
-//     name: "Burger Hub",
-//     image: "https://images.unsplash.com/photo-1551782450-a2132b4ba21d",
-//     rating: 4.2,
-//     cuisine: ["Burgers", "Fast Food"],
-//     location: "Koramangala, Bangalore",
-//     deliveryTime: 25,
-//     priceForTwo: 500,
-//     isOpen: false,
-//     isVeg: false,
-//     hasOffer: false,
-//   },
-//   {
-//     id: 6,
-//     name: "Italiano",
-//     image: "https://images.unsplash.com/photo-1525755662778-989d0524087e",
-//     rating: 4.6,
-//     cuisine: ["Italian", "Pizza"],
-//     location: "Whitefield, Bangalore",
-//     deliveryTime: 35,
-//     priceForTwo: 800,
-//     isOpen: true,
-//     isVeg: false,
-//     hasOffer: true,
-//   },
-//   {
-//     id: 7,
-//     name: "Spice Garden",
-//     image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5",
-//     rating: 4.4,
-//     cuisine: ["North Indian", "Chinese"],
-//     location: "Indiranagar, Bangalore",
-//     deliveryTime: 30,
-//     priceForTwo: 600,
-//     isOpen: true,
-//     isVeg: true,
-//     hasOffer: true,
-//   },
-//   {
-//     id: 8,
-//     name: "Burger Hub",
-//     image: "https://images.unsplash.com/photo-1551782450-a2132b4ba21d",
-//     rating: 4.2,
-//     cuisine: ["Burgers", "Fast Food"],
-//     location: "Koramangala, Bangalore",
-//     deliveryTime: 25,
-//     priceForTwo: 500,
-//     isOpen: false,
-//     isVeg: false,
-//     hasOffer: false,
-//   },
-//   {
-//     id: 9,
-//     name: "Italiano",
-//     image: "https://images.unsplash.com/photo-1525755662778-989d0524087e",
-//     rating: 4.6,
-//     cuisine: ["Italian", "Pizza"],
-//     location: "Whitefield, Bangalore",
-//     deliveryTime: 35,
-//     priceForTwo: 800,
-//     isOpen: true,
-//     isVeg: false,
-//     hasOffer: true,
-//   },
-//   {
-//     id: 10,
-//     name: "Spice Garden",
-//     image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5",
-//     rating: 4.4,
-//     cuisine: ["North Indian", "Chinese"],
-//     location: "Indiranagar, Bangalore",
-//     deliveryTime: 30,
-//     priceForTwo: 600,
-//     isOpen: true,
-//     isVeg: true,
-//     hasOffer: true,
-//   },
-//   {
-//     id: 11,
-//     name: "Burger Hub",
-//     image: "https://images.unsplash.com/photo-1551782450-a2132b4ba21d",
-//     rating: 4.2,
-//     cuisine: ["Burgers", "Fast Food"],
-//     location: "Koramangala, Bangalore",
-//     deliveryTime: 25,
-//     priceForTwo: 500,
-//     isOpen: false,
-//     isVeg: false,
-//     hasOffer: false,
-//   },
-//   {
-//     id: 12,
-//     name: "Italiano",
-//     image: "https://images.unsplash.com/photo-1525755662778-989d0524087e",
-//     rating: 4.6,
-//     cuisine: ["Italian", "Pizza"],
-//     location: "Whitefield, Bangalore",
-//     deliveryTime: 35,
-//     priceForTwo: 800,
-//     isOpen: true,
-//     isVeg: false,
-//     hasOffer: true,
-//   },
-//   {
-//     id: 13,
-//     name: "Spice Garden",
-//     image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5",
-//     rating: 4.4,
-//     cuisine: ["North Indian", "Chinese"],
-//     location: "Indiranagar, Bangalore",
-//     deliveryTime: 30,
-//     priceForTwo: 600,
-//     isOpen: true,
-//     isVeg: true,
-//     hasOffer: true,
-//   },
-//   {
-//     id: 14,
-//     name: "Burger Hub",
-//     image: "https://images.unsplash.com/photo-1551782450-a2132b4ba21d",
-//     rating: 4.2,
-//     cuisine: ["Burgers", "Fast Food"],
-//     location: "Koramangala, Bangalore",
-//     deliveryTime: 25,
-//     priceForTwo: 500,
-//     isOpen: false,
-//     isVeg: false,
-//     hasOffer: false,
-//   },
-//   {
-//     id: 15,
-//     name: "Italiano",
-//     image: "https://images.unsplash.com/photo-1525755662778-989d0524087e",
-//     rating: 4.6,
-//     cuisine: ["Italian", "Pizza"],
-//     location: "Whitefield, Bangalore",
-//     deliveryTime: 35,
-//     priceForTwo: 800,
-//     isOpen: true,
-//     isVeg: false,
-//     hasOffer: true,
-//   },
-// ];
-
-/* =======================
-   COMPONENT
-======================= */
+import SwiggyFoodCard from "../../Components/SwiggyFoodCard";
 
 function RestaurantsPage() {
   const theme = useTheme();
-  const colors = GetColors(theme.palette.mode);
-  const [searchParams, setSearchParams] = useSearchParams(); // NEW
+  const [searchParams, setSearchParams] = useSearchParams();
 
   /* ---- filter state ---- */
   const [rating4Plus, setRating4Plus] = useState(false);
@@ -234,12 +26,12 @@ function RestaurantsPage() {
   const [offers, setOffers] = useState(false);
   const [fastDelivery, setFastDelivery] = useState(false);
   const [openNow, setOpenNow] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null); // NEW
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [restaurantsData, setRestaurantsData] = useState([]);
   const [location, setLocation] = useState(null);
 
-  // Initialize filters from URL params
   useEffect(() => {
     const categoryParam = searchParams.get("category");
     const isOpenParam = searchParams.get("isOpen");
@@ -255,19 +47,11 @@ function RestaurantsPage() {
   useEffect(() => {
     fetchRestaurants();
 
-    // Listen for location changes
-    const handleLocationChange = (event) => {
-      setLocation(event.detail);
-      fetchRestaurants(event.detail.lat, event.detail.long);
-    };
-
-    window.addEventListener("locationChanged", handleLocationChange);
-
-    // Try to get current location from API
     const getCurrentLocation = async () => {
       try {
         const api = (await import("../../utils/api")).default;
         const res = await api.get("/api/addresses/current");
+
         if (res.data?.lat && res.data?.long) {
           setLocation({ lat: res.data.lat, long: res.data.long });
           fetchRestaurants(res.data.lat, res.data.long);
@@ -280,10 +64,6 @@ function RestaurantsPage() {
     };
 
     getCurrentLocation();
-
-    return () => {
-      window.removeEventListener("locationChanged", handleLocationChange);
-    };
   }, []);
 
   const fetchRestaurants = async (lat = null, long = null) => {
@@ -294,6 +74,8 @@ function RestaurantsPage() {
         url += `?lat=${lat}&long=${long}`;
       }
       const res = await api.get(url);
+      console.log("fetchDishes" + JSON.stringify(res.data));
+
       setRestaurantsData(res.data || []);
     } catch (error) {
       console.error("Error fetching restaurant data:", error);
@@ -309,13 +91,20 @@ function RestaurantsPage() {
       if (fastDelivery && r.deliveryTime > 30) return false;
       if (openNow && !r.isOpen) return false;
 
-      // Filter by Category/Cuisine
       if (selectedCategory) {
-        // Check if cuisine array contains the category (case-insensitive)
         const hasCuisine = r.cuisine?.some(
           (c) => c.toLowerCase() === selectedCategory.toLowerCase(),
         );
         if (!hasCuisine) return false;
+      }
+
+      if (searchTerm) {
+        const lowerSearch = searchTerm.toLowerCase();
+        const matchesName = r.name?.toLowerCase().includes(lowerSearch);
+        const matchesCuisine = r.cuisine?.some((c) =>
+          c.toLowerCase().includes(lowerSearch),
+        );
+        if (!matchesName && !matchesCuisine) return false;
       }
 
       return true;
@@ -328,189 +117,313 @@ function RestaurantsPage() {
     fastDelivery,
     openNow,
     selectedCategory,
+    searchTerm,
   ]);
 
-  /* =======================
-     UI
-  ======================= */
-
   return (
-    <Box sx={{ paddingLeft: 2, paddingRight: 2 }}>
+    <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
       {/* HERO */}
       <Box
         sx={{
-          py: { xs: 4, md: 6 },
+          py: { xs: 8, md: 12 },
           textAlign: "center",
-          background: "linear-gradient(135deg, #3f2aa0 0%, #ff8a65 100%)",
-          color: "#000000ff",
+          background:
+            theme.palette.mode === "dark"
+              ? "linear-gradient(135deg, #064e3b 0%, #171717 100%)"
+              : "linear-gradient(135deg, #059669 0%, #064e3b 100%)",
+          color: "white",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        <Typography variant="h4" fontWeight={700}>
-          Discover Restaurants Near You
-        </Typography>
-        <Typography sx={{ mt: 1, opacity: 0.9 }}>
-          Browse top-rated restaurants and exclusive offers
-        </Typography>
-      </Box>
-
-      {/* SEARCH + FILTERS */}
-      <Container maxWidth="lg" sx={{ mt: -4, mb: 3 }}>
+        <Container
+          maxWidth="xxl"
+          sx={{ px: { xs: 2, md: 8 }, position: "relative", zIndex: 1 }}
+        >
+          <Typography
+            variant="h1"
+            sx={{
+              fontWeight: 900,
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              letterSpacing: "-0.04em",
+              mb: 2,
+            }}
+          >
+            Premium Kitchens
+          </Typography>
+          <Typography
+            sx={{
+              opacity: 0.8,
+              fontWeight: 700,
+              letterSpacing: "0.2em",
+              fontSize: "0.75rem",
+              textTransform: "uppercase",
+            }}
+          >
+            CURATED GASTRONOMY NEAR YOU
+          </Typography>
+        </Container>
+        {/* Subtle texture overlay */}
         <Box
           sx={{
-            bgcolor: theme.palette.background.paper,
-            p: 2,
-            borderRadius: 2,
-            boxShadow: 2,
+            position: "absolute",
+            inset: 0,
+            opacity: 0.1,
+            background: "radial-gradient(#ffffff 2px, transparent 2px)",
+            backgroundSize: "32px 32px",
+          }}
+        />
+      </Box>
+
+      {/* FILTERS */}
+      <Container
+        maxWidth="xxl"
+        sx={{
+          mt: -4,
+          mb: 6,
+          px: { xs: 2, md: 8 },
+          position: "relative",
+          zIndex: 10,
+        }}
+      >
+        <Box
+          sx={{
+            bgcolor: "background.paper",
+            p: 4,
+            borderRadius: "32px",
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? "0 20px 50px rgba(0,0,0,0.5)"
+                : "0 20px 50px rgba(0,0,0,0.08)",
+            border:
+              "1px solid " +
+              (theme.palette.mode === "dark"
+                ? "rgba(255,255,255,0.05)"
+                : "rgba(0,0,0,0.05)"),
           }}
         >
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={6}></Grid>
+          <Stack direction="row" spacing={3} alignItems="center" sx={{ mb: 4 }}>
+            <Box
+              sx={{
+                flex: 1,
+                bgcolor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(255,255,255,0.05)"
+                    : "rgba(0,0,0,0.04)",
+                borderRadius: "100px",
+                px: 3,
+                height: "56px",
+                display: "flex",
+                alignItems: "center",
+                transition: "all 0.3s ease",
+                border: "1px solid transparent",
+                "&:focus-within": {
+                  bgcolor:
+                    theme.palette.mode === "dark"
+                      ? "rgba(255,255,255,0.08)"
+                      : "white",
+                  borderColor: "primary.main",
+                  boxShadow: "0 0 0 4px " + theme.palette.primary.main + "20",
+                },
+              }}
+            >
+              <SearchIcon sx={{ color: "text.secondary", mr: 2 }} />
+              <InputBase
+                placeholder="Search for your favorite kitchens or cuisines..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                sx={{
+                  flex: 1,
+                  fontSize: "1rem",
+                  fontWeight: 600,
+                  "& input::placeholder": {
+                    color: "text.secondary",
+                    opacity: 0.7,
+                  },
+                }}
+              />
+            </Box>
+          </Stack>
 
-            <Grid item xs={12} md={6}>
-              <Stack direction="row" spacing={1} flexWrap="wrap">
-                <Chip
-                  label="Rating 4+"
-                  clickable
-                  onClick={() => setRating4Plus((v) => !v)}
-                  sx={chipStyle(rating4Plus, colors)}
-                />
-                <Chip
-                  label="Pure Veg"
-                  clickable
-                  onClick={() => setPureVeg((v) => !v)}
-                  sx={chipStyle(pureVeg, colors)}
-                />
-                <Chip
-                  label="Offers"
-                  clickable
-                  onClick={() => setOffers((v) => !v)}
-                  sx={chipStyle(offers, colors)}
-                />
-                <Chip
-                  label="Fast Delivery"
-                  clickable
-                  onClick={() => setFastDelivery((v) => !v)}
-                  sx={chipStyle(fastDelivery, colors)}
-                />
-                <Chip
-                  label="Open Now"
-                  clickable
-                  onClick={() => setOpenNow((v) => !v)}
-                  sx={chipStyle(openNow, colors)}
-                />
-              </Stack>
-            </Grid>
-          </Grid>
+          <Stack
+            direction="row"
+            spacing={2}
+            flexWrap="wrap"
+            useFlexGap
+            sx={{ gap: 2 }}
+          >
+            <Chip
+              label="Rating 4+"
+              clickable
+              onClick={() => setRating4Plus((v) => !v)}
+              sx={chipStyle(rating4Plus, theme)}
+            />
+            <Chip
+              label="Pure Veg"
+              clickable
+              onClick={() => setPureVeg((v) => !v)}
+              sx={chipStyle(pureVeg, theme)}
+            />
+            <Chip
+              label="Offers"
+              clickable
+              onClick={() => setOffers((v) => !v)}
+              sx={chipStyle(offers, theme)}
+            />
+            <Chip
+              label="Fast Delivery"
+              clickable
+              onClick={() => setFastDelivery((v) => !v)}
+              sx={chipStyle(fastDelivery, theme)}
+            />
+            <Chip
+              label="Open Now"
+              clickable
+              onClick={() => setOpenNow((v) => !v)}
+              sx={chipStyle(openNow, theme)}
+            />
+          </Stack>
 
-          {/* APPLIED FILTERS */}
           {(rating4Plus ||
             pureVeg ||
             offers ||
             fastDelivery ||
             openNow ||
             selectedCategory) && (
-            <>
-              <Divider sx={{ my: 2 }} />
-              <Stack direction="row" spacing={1} flexWrap="wrap">
+            <Box
+              sx={{
+                mt: 4,
+                pt: 3,
+                borderTop: "1px solid " + theme.palette.divider,
+              }}
+            >
+              <Stack direction="row" spacing={1.5} flexWrap="wrap">
                 {selectedCategory && (
                   <AppliedChip
-                    label={`Cuisine: ${selectedCategory}`}
+                    label={`CUISINE: ${selectedCategory.toUpperCase()}`}
                     onDelete={() => {
                       setSelectedCategory(null);
-                      setSearchParams({}); // Clean URL
+                      setSearchParams({});
                     }}
                   />
                 )}
                 {rating4Plus && (
                   <AppliedChip
-                    label="Rating 4+"
+                    label="RATING 4+"
                     onDelete={() => setRating4Plus(false)}
                   />
                 )}
                 {pureVeg && (
                   <AppliedChip
-                    label="Pure Veg"
+                    label="PURE VEG"
                     onDelete={() => setPureVeg(false)}
                   />
                 )}
                 {offers && (
                   <AppliedChip
-                    label="Offers"
+                    label="OFFERS"
                     onDelete={() => setOffers(false)}
                   />
                 )}
                 {fastDelivery && (
                   <AppliedChip
-                    label="Fast Delivery"
+                    label="FAST DELIVERY"
                     onDelete={() => setFastDelivery(false)}
                   />
                 )}
                 {openNow && (
                   <AppliedChip
-                    label="Open Now"
+                    label="OPEN NOW"
                     onDelete={() => setOpenNow(false)}
                   />
                 )}
               </Stack>
-            </>
+            </Box>
           )}
         </Box>
       </Container>
 
       {/* RESTAURANT GRID */}
-      <Container
-        maxWidth="lg"
-        sx={{
-          // display: "flex",
-          // flexWrap: "wrap",
-          // gap: 2,
-          // justifyContent: "center",
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(185px,1fr))",
-          justifyContent: "center",
-          gap: "20px",
-        }}
-      >
-        {filteredRestaurants.map((restaurant) => (
-          <Box
-            key={restaurant.id}
-            sx={
-              {
-                // minWidth: 260,
-                // width: {
-                //   xs: "100%",
-                //   sm: "45%",
-                //   md: "30%",
-                //   lg: "22%",
-                // },
-              }
-            }
-          >
-            <RestaurantCard restaurant={restaurant} />
-          </Box>
-        ))}
-
-        {filteredRestaurants.length === 0 && (
-          <Typography color="text.secondary">
-            No restaurants match your filters.
+      <Container maxWidth="xxl" sx={{ pb: 12, px: { xs: 2, md: 8 } }}>
+        <Box
+          sx={{
+            mb: 4,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+          }}
+        >
+          <Typography variant="h4" sx={{ fontWeight: 800 }}>
+            Explore All Kitchens
           </Typography>
+          <Typography
+            sx={{
+              color: "text.secondary",
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              opacity: 0.6,
+            }}
+          >
+            {filteredRestaurants.length} RESULTS FOUND
+          </Typography>
+        </Box>
+
+        {filteredRestaurants.length === 0 ? (
+          <Box
+            sx={{
+              textAlign: "center",
+              py: 15,
+              bgcolor: "background.paper",
+              borderRadius: "32px",
+              border: "1px dashed " + theme.palette.divider,
+            }}
+          >
+            <Typography
+              variant="h5"
+              color="text.secondary"
+              fontWeight={800}
+              sx={{ opacity: 0.5 }}
+            >
+              No kitchens match your journal filters.
+            </Typography>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "repeat(1, 1fr)",
+                sm: "repeat(2, 1fr)",
+                md: "repeat(3, 1fr)",
+                lg: "repeat(6, 1fr)",
+              },
+              gap: 4,
+            }}
+          >
+            {filteredRestaurants.map((restaurant) => (
+              <SwiggyFoodCard key={restaurant.id} {...restaurant} />
+            ))}
+          </Box>
         )}
       </Container>
     </Box>
   );
 }
 
-/* =======================
-   HELPERS
-======================= */
-
-const chipStyle = (active, colors) => ({
-  bgcolor: active ? colors.greenAccent[500] : "transparent",
-  color: active ? colors.Font[100] : "inherit",
-  fontWeight: 600,
-  fontSize: "0.75rem",
+const chipStyle = (active, theme) => ({
+  bgcolor: active ? "primary.main" : "background.default",
+  color: active ? "white" : "text.secondary",
+  fontWeight: 800,
+  fontSize: "0.65rem",
+  textTransform: "uppercase",
+  letterSpacing: "0.1em",
+  px: 1,
+  height: "36px",
+  border: "1px solid " + (active ? "transparent" : theme.palette.divider),
+  transition: "all 0.3s ease",
   "&:hover": {
-    bgcolor: active ? colors.greenAccent[600] : "action.hover",
+    bgcolor: active ? "primary.dark" : "rgba(5, 150, 105, 0.05)",
+    borderColor: "primary.main",
   },
 });
 
@@ -518,9 +431,18 @@ const AppliedChip = ({ label, onDelete }) => (
   <Chip
     label={label}
     onDelete={onDelete}
-    deleteIcon={<CloseIcon />}
-    color="primary"
-    size="small"
+    deleteIcon={<CloseIcon sx={{ fontSize: "14px !important" }} />}
+    sx={{
+      bgcolor: "secondary.main",
+      color: "white",
+      fontWeight: 900,
+      fontSize: "0.6rem",
+      height: "28px",
+      "& .MuiChip-deleteIcon": {
+        color: "white !important",
+        "&:hover": { opacity: 0.8 },
+      },
+    }}
   />
 );
 

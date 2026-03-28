@@ -1,22 +1,24 @@
 import { io } from "socket.io-client";
 import { useEffect, useRef, useState } from "react";
-import { useLoginInfo } from "../../utils/CustomHooks";
+import { useSelector } from "react-redux";
 
 export default function ChatPage() {
-  const [logininfo] = useLoginInfo();
   const socketRef = useRef(null);
+  const { isAuthenticated, loading, accessToken } = useSelector(
+    (state) => state.auth,
+  );
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
 
   useEffect(() => {
-    if (!logininfo?.accessToken) return;
+    if (!accessToken) return;
 
     socketRef.current = io("http://localhost:5001", {
       withCredentials: true,
       transports: ["websocket"],
       auth: {
-        token: logininfo.accessToken,
+        token: accessToken,
       },
     });
 
@@ -42,7 +44,7 @@ export default function ChatPage() {
       socketRef.current?.disconnect();
       socketRef.current = null;
     };
-  }, [logininfo?.accessToken]);
+  }, [accessToken]);
 
   const sendMessage = () => {
     if (!input.trim()) return;

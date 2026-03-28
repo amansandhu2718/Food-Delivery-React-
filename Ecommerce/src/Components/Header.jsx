@@ -1,9 +1,7 @@
 import { Box, Typography, useTheme } from "@mui/material";
-import { GetColors } from "../utils/Theme";
 
 const Header = ({ title, subtitle }) => {
   const theme = useTheme();
-  const colors = GetColors(theme.palette.mode);
 
   return (
     <>
@@ -12,10 +10,10 @@ const Header = ({ title, subtitle }) => {
           width: "100%",
         }}
       >
-        <Typography variant="h2" color={colors.Font[100]} fontWeight="bold">
+        <Typography variant="h2" color="text.primary" fontWeight="bold">
           {title}
         </Typography>
-        <Typography variant="h4" color={colors.blueAccent[300]}>
+        <Typography variant="h4" color="primary.light">
           {subtitle}
         </Typography>
       </Box>

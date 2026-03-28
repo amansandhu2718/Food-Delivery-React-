@@ -7,26 +7,18 @@ exports.getAllRestaurants = async (req, res) => {
     let query;
     let params = [];
 
+    let role = req.user?.role?.toUpperCase();
+    let userId = req.user?.id;
+
     if (lat && long) {
-      // Filter restaurants within 2km using Haversine formula
+      // Filter restaurants within 10km using Haversine formula
       query = `
         SELECT
-          id,
-          title,
-          title AS name,
-          COALESCE(image_url, '') AS image,
-          rating,
-          COALESCE(cuisine, '{}') AS cuisine,
-          location,
-          delivery_time AS "deliveryTime",
-          price_for_two AS "priceForTwo",
-          is_open AS "isOpen",
-          is_veg AS "isVeg",
-          has_offer AS "hasOffer",
-          contact,
-          promo,
-          lat,
-          long,
+          id, title, title AS name, COALESCE(image_url, '') AS image,
+          rating, COALESCE(cuisine, '{}') AS cuisine, location,
+          delivery_time AS "deliveryTime", price_for_two AS "priceForTwo",
+          is_open AS "isOpen", is_veg AS "isVeg", has_offer AS "hasOffer",
+          contact, promo, lat, long, owner_id,
           (
             6371 * acos(
               cos(radians($1)) * cos(radians(lat)) *
@@ -42,33 +34,25 @@ exports.getAllRestaurants = async (req, res) => {
               cos(radians(long) - radians($2)) +
               sin(radians($1)) * sin(radians(lat))
             )
-          ) <= 2
+          ) <= 10
+          ${(role === "ADMIN" || role === "REST_OWNER") ? " AND owner_id = $3" : ""}
         ORDER BY distance ASC, title ASC
       `;
       params = [parseFloat(lat), parseFloat(long)];
+      if (role === "ADMIN" || role === "REST_OWNER") params.push(userId);
     } else {
-      // Return all restaurants if no location provided
       query = `
         SELECT
-          id,
-          title,
-          title AS name,
-          COALESCE(image_url, '') AS image,
-          rating,
-          COALESCE(cuisine, '{}') AS cuisine,
-          location,
-          delivery_time AS "deliveryTime",
-          price_for_two AS "priceForTwo",
-          is_open AS "isOpen",
-          is_veg AS "isVeg",
-          has_offer AS "hasOffer",
-          contact,
-          promo,
-          lat,
-          long
+          id, title, title AS name, COALESCE(image_url, '') AS image,
+          rating, COALESCE(cuisine, '{}') AS cuisine, location,
+          delivery_time AS "deliveryTime", price_for_two AS "priceForTwo",
+          is_open AS "isOpen", is_veg AS "isVeg", has_offer AS "hasOffer",
+          contact, promo, lat, long, owner_id
         FROM restaurants
+        ${(role === "ADMIN" || role === "REST_OWNER") ? " WHERE owner_id = $1" : ""}
         ORDER BY title ASC
       `;
+      if (role === "ADMIN" || role === "REST_OWNER") params = [userId];
     }
 
     const { rows } = await db.query(query, params);
@@ -116,43 +100,28 @@ exports.getRestaurantById = async (req, res) => {
 
 exports.createRestaurant = async (req, res) => {
   const {
-    title,
-    location,
-    contact,
-    lat,
-    long,
-    image,
-    rating,
-    cuisine,
-    deliveryTime,
-    priceForTwo,
-    isOpen = true,
-    isVeg = false,
-    hasOffer = false,
-    promo,
+    title, location, contact, lat, long, image, rating, cuisine,
+    deliveryTime, priceForTwo, isOpen = true, isVeg = false,
+    hasOffer = false, promo, ownerId
   } = req.body;
+
+  const creatorRole = req.user?.role?.toUpperCase();
+  const creatorId = req.user?.id;
+
+  // If SUPER_ADMIN, use ownerId from body if provided, else use creatorId? 
+  // No, if SUPER_ADMIN creates it, they might want to assign it to someone else.
+  // If ADMIN or REST_OWNER, enforce creatorId as owner_id.
+  const finalOwnerId = (creatorRole === "SUPER_ADMIN" && ownerId) ? ownerId : creatorId;
 
   const { rows } = await db.query(
     `INSERT INTO restaurants
       (title, location, contact, lat, long, image_url, rating, cuisine,
-       delivery_time, price_for_two, is_open, is_veg, has_offer, promo)
+       delivery_time, price_for_two, is_open, is_veg, has_offer, promo, owner_id)
      VALUES
-      ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id`,
+      ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
     [
-      title,
-      location,
-      contact,
-      lat,
-      long,
-      image,
-      rating,
-      cuisine,
-      deliveryTime,
-      priceForTwo,
-      isOpen,
-      isVeg,
-      hasOffer,
-      promo,
+      title, location, contact, lat, long, image, rating, cuisine,
+      deliveryTime, priceForTwo, isOpen, isVeg, hasOffer, promo, finalOwnerId
     ]
   );
 

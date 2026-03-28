@@ -93,161 +93,189 @@ function CartPage() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" fontWeight={700} mb={4}>
-        Shopping Cart
-      </Typography>
+    <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 8 }}>
+      <Container maxWidth="xxl" sx={{ px: { xs: 2, md: 8 } }}>
+        {/* Header */}
+        <Box sx={{ mb: 6 }}>
+          <Typography sx={{ color: "primary.main", fontWeight: 900, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.3em", mb: 0.5 }}>
+            Reservation
+          </Typography>
+          <Typography variant="h3" sx={{ fontWeight: 800 }}>
+            Your Selection
+          </Typography>
+        </Box>
 
-      {cartItems.length === 0 ? (
-        <Card sx={{ boxShadow: 3 }}>
-          <CardContent sx={{ textAlign: "center", py: 8 }}>
-            <ShoppingCartIcon sx={{ fontSize: 80, color: "text.secondary", mb: 2 }} />
-            <Typography variant="h6" color="text.secondary" mb={2}>
-              Your cart is empty
+        {cartItems.length === 0 ? (
+          <Box 
+            sx={{ 
+                textAlign: "center", 
+                py: 12, 
+                bgcolor: "white", 
+                borderRadius: "48px", 
+                border: "1px solid rgba(0,0,0,0.05)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center"
+            }}
+          >
+            <ShoppingCartIcon sx={{ fontSize: 64, color: "rgba(0,0,0,0.1)", mb: 3 }} />
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>Your cart is empty</Typography>
+            <Typography sx={{ color: "text.secondary", mb: 4, maxWidth: 300 }}>
+              Discover the finest flavors from our curated collection of kitchens.
             </Typography>
-            <Button variant="contained" onClick={() => navigate("/Explore")}>
-              Browse Restaurants
+            <Button 
+                variant="contained" 
+                disableElevation
+                onClick={() => navigate("/Explore")}
+                sx={{ 
+                    borderRadius: "100px", 
+                    px: 6, 
+                    py: 1.5, 
+                    fontWeight: 800, 
+                    bgcolor: "primary.main" 
+                }}
+            >
+              Explore Collection
             </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            {cartItems.map((item) => (
-              <Card key={item.id} sx={{ mb: 2, boxShadow: 2 }}>
-                <Box display="flex" flexDirection={{ xs: "column", sm: "row" }}>
-                  <CardMedia
-                    component="img"
-                    sx={{
-                      width: { xs: "100%", sm: 150 },
-                      height: { xs: 200, sm: 150 },
-                      objectFit: "cover",
+          </Box>
+        ) : (
+          <Grid container spacing={6}>
+            <Grid item xs={12} lg={8}>
+              <Stack spacing={3}>
+                {cartItems.map((item) => (
+                  <Box 
+                    key={item.id} 
+                    sx={{ 
+                        display: "flex", 
+                        flexDirection: { xs: "column", sm: "row" },
+                        bgcolor: "white", 
+                        borderRadius: "32px", 
+                        overflow: "hidden",
+                        border: "1px solid rgba(0,0,0,0.05)",
+                        transition: "all 0.3s ease",
+                        "&:hover": { boxShadow: "0 10px 30px rgba(0,0,0,0.04)" }
                     }}
-                    image={
-                      item.image && item.image.trim() !== ""
-                        ? item.image
-                        : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"
-                    }
-                    alt={item.name}
-                    onError={(e) => {
-                      e.target.src =
-                        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400";
-                    }}
-                  />
-                  <CardContent sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                    <Box display="flex" justifyContent="space-between" alignItems="start" mb={1}>
-                      <Box flex={1}>
-                        <Typography variant="h6" fontWeight={600}>
-                          {item.name}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {item.restaurantName}
-                        </Typography>
-                        {item.category && (
-                          <Typography variant="caption" color="text.secondary">
-                            {item.category}
-                          </Typography>
-                        )}
-                      </Box>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => removeItem(item.id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Box>
-
+                  >
                     <Box
-                      display="flex"
-                      justifyContent="space-between"
-                      alignItems="center"
-                      mt="auto"
-                    >
-                      <Typography variant="h6" color="primary">
-                        ₹{formatPrice(item.price * item.quantity)}
-                      </Typography>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <IconButton
-                          size="small"
-                          onClick={() => updateQuantity(item.id, item.productId, item.quantity - 1)}
+                      component="img"
+                      src={item.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"}
+                      sx={{
+                        width: { xs: "100%", sm: 200 },
+                        height: { xs: 200, sm: "auto" },
+                        objectFit: "cover",
+                      }}
+                    />
+                    <Box sx={{ p: 4, flexGrow: 1, display: "flex", flexDirection: "column" }}>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                        <Box>
+                          <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            {item.name}
+                          </Typography>
+                          <Typography sx={{ color: "primary.main", fontWeight: 700, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                            {item.restaurantName}
+                          </Typography>
+                        </Box>
+                        <IconButton 
+                            size="small" 
+                            onClick={() => removeItem(item.id)}
+                            sx={{ color: "rgba(0,0,0,0.2)", "&:hover": { color: "#ff4d4d" } }}
                         >
-                          <RemoveIcon />
+                          <DeleteIcon fontSize="small" />
                         </IconButton>
-                        <Typography>{item.quantity}</Typography>
-                        <IconButton
-                          size="small"
-                          onClick={() => updateQuantity(item.id, item.productId, item.quantity + 1)}
-                        >
-                          <AddIcon />
-                        </IconButton>
-                      </Stack>
+                      </Box>
+                      
+                      <Box sx={{ mt: "auto", display: "flex", justifyContent: "space-between", alignItems: "center", pt: 2 }}>
+                        <Typography sx={{ fontWeight: 900, fontSize: "1.25rem" }}>
+                          ₹{formatPrice(item.price * item.quantity)}
+                        </Typography>
+                        
+                        <Stack direction="row" alignItems="center" bgcolor="rgba(0,0,0,0.03)" borderRadius="100px" px={1}>
+                          <IconButton size="small" onClick={() => updateQuantity(item.id, item.productId, item.quantity - 1)}>
+                            <RemoveIcon fontSize="small" />
+                          </IconButton>
+                          <Typography sx={{ fontWeight: 800, mx: 1.5, fontSize: "0.9rem" }}>{item.quantity}</Typography>
+                          <IconButton size="small" onClick={() => updateQuantity(item.id, item.productId, item.quantity + 1)}>
+                            <AddIcon fontSize="small" />
+                          </IconButton>
+                        </Stack>
+                      </Box>
                     </Box>
-                  </CardContent>
-                </Box>
-              </Card>
-            ))}
-          </Grid>
+                  </Box>
+                ))}
+              </Stack>
+            </Grid>
 
-          <Grid item xs={12} md={4}>
-            <Card sx={{ boxShadow: 3, position: "sticky", top: 20 }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight={600} mb={2}>
+            {/* Order Summary */}
+            <Grid item xs={12} lg={4}>
+              <Box 
+                sx={{ 
+                    bgcolor: "white", 
+                    p: 5, 
+                    borderRadius: "40px", 
+                    border: "1px solid rgba(0,0,0,0.05)",
+                    position: "sticky",
+                    top: 100
+                }}
+              >
+                <Typography variant="h5" sx={{ fontWeight: 800, mb: 4, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   Order Summary
                 </Typography>
-                <Divider sx={{ mb: 2 }} />
-
-                <Box display="flex" justifyContent="space-between" mb={1}>
-                  <Typography variant="body2" color="text.secondary">
-                    Subtotal ({cartItems.reduce((sum, item) => sum + item.quantity, 0)} items)
-                  </Typography>
-                  <Typography variant="body2">
-                    ₹{formatPrice(calculateTotal())}
-                  </Typography>
-                </Box>
-
-                <Box display="flex" justifyContent="space-between" mb={1}>
-                  <Typography variant="body2" color="text.secondary">
-                    Delivery Charges
-                  </Typography>
-                  <Typography variant="body2">₹40.00</Typography>
-                </Box>
-
-                <Divider sx={{ my: 2 }} />
-
-                <Box display="flex" justifyContent="space-between" mb={3}>
-                  <Typography variant="h6" fontWeight={600}>
-                    Total
-                  </Typography>
-                  <Typography variant="h6" color="primary" fontWeight={600}>
-                    ₹{(parseFloat(formatPrice(calculateTotal())) + 40).toFixed(2)}
-                  </Typography>
-                </Box>
+                
+                <Stack spacing={2.5} sx={{ mb: 4 }}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                    <Typography sx={{ color: "text.secondary", fontWeight: 600 }}>Subtotal</Typography>
+                    <Typography sx={{ fontWeight: 700 }}>₹{formatPrice(calculateTotal())}</Typography>
+                  </Box>
+                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                    <Typography sx={{ color: "text.secondary", fontWeight: 600 }}>Service Fee</Typography>
+                    <Typography sx={{ fontWeight: 700 }}>₹40.00</Typography>
+                  </Box>
+                  <Divider />
+                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                    <Typography variant="h6" sx={{ fontWeight: 800 }}>Total</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 900, color: "primary.main" }}>
+                      ₹{(parseFloat(formatPrice(calculateTotal())) + 40).toFixed(2)}
+                    </Typography>
+                  </Box>
+                </Stack>
 
                 <Button
                   variant="contained"
                   fullWidth
+                  disableElevation
                   size="large"
-                  endIcon={<ArrowForwardIcon />}
                   onClick={handleProceedToPayment}
-                  sx={{ mb: 2 }}
+                  sx={{ 
+                    borderRadius: "100px", 
+                    py: 2, 
+                    fontWeight: 900, 
+                    bgcolor: "secondary.main",
+                    mb: 2,
+                    "&:hover": { bgcolor: "secondary.dark" }
+                  }}
                 >
-                  Proceed to Payment
+                  Proceed to Checkout
                 </Button>
 
                 <Button
-                  variant="outlined"
+                  variant="text"
                   fullWidth
                   onClick={() => navigate("/Explore")}
+                  sx={{ 
+                    color: "text.secondary", 
+                    fontWeight: 700, 
+                    fontSize: "0.85rem",
+                    "&:hover": { color: "primary.main", bgcolor: "transparent" } 
+                  }}
                 >
-                  Continue Shopping
+                  Continue Browsing
                 </Button>
-              </CardContent>
-            </Card>
+              </Box>
+            </Grid>
           </Grid>
-        </Grid>
-      )}
-    </Container>
+        )}
+      </Container>
+    </Box>
   );
 }
 

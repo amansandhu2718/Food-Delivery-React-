@@ -31,77 +31,105 @@ const initSocket = (server) => {
     }
   });
 
-  const getDashboardData = async () => {
+  const getDashboardData = async (ownerId = null) => {
     try {
+      let restaurantId = null;
+      if (ownerId) {
+        const res = await db.query("SELECT id FROM restaurants WHERE owner_id = $1", [ownerId]);
+        if (res.rows.length > 0) restaurantId = res.rows[0].id;
+      }
+
       // 1. Stats
-      const statsRes = await db.query(`
-        SELECT 
-          ROUND(COALESCE(SUM(total_amount), 0) / 100.0, 2) as "totalSales",
-          COUNT(*) as "totalOrders",
-          (SELECT COUNT(*) FROM users WHERE role = 'USER') as "totalCustomers",
-          (SELECT COUNT(*) FROM users) as "totalUsers"
-        FROM transactions
-      `);
+      const statsQuery = ownerId && restaurantId 
+        ? `SELECT 
+            ROUND(COALESCE(SUM(t.total_amount), 0) / 100.0, 2) as "totalSales",
+            COUNT(DISTINCT t.id) as "totalOrders",
+            (SELECT COUNT(DISTINCT user_id) FROM transactions WHERE id IN (SELECT transaction_id FROM transaction_items ti JOIN products p ON p.id = ti.product_id JOIN restaurant_menu rm ON rm.product_id = p.id WHERE rm.restaurant_id = $1)) as "totalCustomers",
+            0 as "totalUsers"
+           FROM transactions t
+           JOIN transaction_items ti ON ti.transaction_id = t.id
+           JOIN products p ON p.id = ti.product_id
+           JOIN restaurant_menu rm ON rm.product_id = p.id
+           WHERE rm.restaurant_id = $1`
+        : `SELECT 
+            ROUND(COALESCE(SUM(total_amount), 0) / 100.0, 2) as "totalSales",
+            COUNT(*) as "totalOrders",
+            (SELECT COUNT(*) FROM users WHERE role = 'USER') as "totalCustomers",
+            (SELECT COUNT(*) FROM users) as "totalUsers"
+           FROM transactions`;
+      
+      const statsRes = await db.query(statsQuery, ownerId && restaurantId ? [restaurantId] : []);
 
-      // 2. Weekly Revenue for Line Chart
-      const lineDataRes = await db.query(`
-        SELECT 
-          TO_CHAR(created_at, 'Dy') as x,
-          ROUND(SUM(total_amount) / 100.0, 2) as y
-        FROM transactions
-        WHERE created_at > NOW() - INTERVAL '7 days'
-        GROUP BY TO_CHAR(created_at, 'Dy'), DATE_TRUNC('day', created_at)
-        ORDER BY DATE_TRUNC('day', created_at)
-      `);
+      // 2. Weekly Revenue
+      const lineQuery = ownerId && restaurantId
+        ? `SELECT TO_CHAR(t.created_at, 'Dy') as x, ROUND(SUM(ti.price * ti.quantity) / 100.0, 2) as y
+           FROM transactions t
+           JOIN transaction_items ti ON ti.transaction_id = t.id
+           JOIN products p ON p.id = ti.product_id
+           JOIN restaurant_menu rm ON rm.product_id = p.id
+           WHERE rm.restaurant_id = $1 AND t.created_at > NOW() - INTERVAL '7 days'
+           GROUP BY TO_CHAR(t.created_at, 'Dy'), DATE_TRUNC('day', t.created_at)
+           ORDER BY DATE_TRUNC('day', t.created_at)`
+        : `SELECT TO_CHAR(created_at, 'Dy') as x, ROUND(SUM(total_amount) / 100.0, 2) as y
+           FROM transactions
+           WHERE created_at > NOW() - INTERVAL '7 days'
+           GROUP BY TO_CHAR(created_at, 'Dy'), DATE_TRUNC('day', created_at)
+           ORDER BY DATE_TRUNC('day', created_at)`;
 
-      // 3. Category Breakdown for Pie Chart
-      const pieDataRes = await db.query(`
-        SELECT 
-          p.title as id,
-          p.title as label,
-          SUM(ti.quantity) as value
-        FROM transaction_items ti
-        JOIN products p ON p.id = ti.product_id
-        GROUP BY p.id, p.title
-        ORDER BY value DESC
-        LIMIT 10
-      `);
+      const lineDataRes = await db.query(lineQuery, ownerId && restaurantId ? [restaurantId] : []);
 
-      // 4. Bar Chart Data (Orders by Category)
-      const barDataRes = await db.query(`
-        SELECT 
-          p.category as "category",
-          COUNT(*) as "orders"
-        FROM transaction_items ti
-        JOIN products p ON p.id = ti.product_id
-        GROUP BY p.category
-        LIMIT 6
-      `);
+      // 3. Pie Chart
+      const pieQuery = ownerId && restaurantId
+        ? `SELECT p.title as id, p.title as label, SUM(ti.quantity) as value
+           FROM transaction_items ti
+           JOIN products p ON p.id = ti.product_id
+           JOIN restaurant_menu rm ON rm.product_id = p.id
+           WHERE rm.restaurant_id = $1
+           GROUP BY p.id, p.title ORDER BY value DESC LIMIT 10`
+        : `SELECT p.title as id, p.title as label, SUM(ti.quantity) as value
+           FROM transaction_items ti
+           JOIN products p ON p.id = ti.product_id
+           GROUP BY p.id, p.title ORDER BY value DESC LIMIT 10`;
+
+      const pieDataRes = await db.query(pieQuery, ownerId && restaurantId ? [restaurantId] : []);
+
+      // 4. Bar Chart
+      const barQuery = ownerId && restaurantId
+        ? `SELECT p.category as "category", COUNT(*) as "orders"
+           FROM transaction_items ti
+           JOIN products p ON p.id = ti.product_id
+           JOIN restaurant_menu rm ON rm.product_id = p.id
+           WHERE rm.restaurant_id = $1
+           GROUP BY p.category LIMIT 6`
+        : `SELECT p.category as "category", COUNT(*) as "orders"
+           FROM transaction_items ti
+           JOIN products p ON p.id = ti.product_id
+           GROUP BY p.category LIMIT 6`;
+
+      const barDataRes = await db.query(barQuery, ownerId && restaurantId ? [restaurantId] : []);
 
       // 5. Recent Transactions
-      const recentRes = await db.query(`
-        SELECT 
-          t.id as txId,
-          u.name as user,
-          ROUND(t.total_amount / 100.0, 2) as cost,
-          TO_CHAR(t.created_at, 'YYYY-MM-DD') as date
-        FROM transactions t
-        JOIN users u ON u.id = t.user_id
-        ORDER BY t.created_at DESC
-        LIMIT 10
-      `);
+      const recentQuery = ownerId && restaurantId
+        ? `SELECT t.id as txId, u.name as user, ROUND(SUM(ti.price * ti.quantity) / 100.0, 2) as cost, TO_CHAR(t.created_at, 'YYYY-MM-DD') as date
+           FROM transactions t
+           JOIN users u ON u.id = t.user_id
+           JOIN transaction_items ti ON ti.transaction_id = t.id
+           JOIN products p ON p.id = ti.product_id
+           JOIN restaurant_menu rm ON rm.product_id = p.id
+           WHERE rm.restaurant_id = $1
+           GROUP BY t.id, u.name, t.created_at ORDER BY t.created_at DESC LIMIT 10`
+        : `SELECT t.id as txId, u.name as user, ROUND(t.total_amount / 100.0, 2) as cost, TO_CHAR(t.created_at, 'YYYY-MM-DD') as date
+           FROM transactions t
+           JOIN users u ON u.id = t.user_id
+           ORDER BY t.created_at DESC LIMIT 10`;
 
-      // 6. Recent Complaints
-      const complaintsRes = await db.query(`
-        SELECT 
-          c.id as txId,
-          u.name as user,
-          c.subject as cost,
-          TO_CHAR(c.created_at, 'YYYY-MM-DD') as date
-        FROM complaints c
-        JOIN users u ON u.id = c.user_id
-        ORDER BY c.created_at DESC
-        LIMIT 10
+      const recentRes = await db.query(recentQuery, ownerId && restaurantId ? [restaurantId] : []);
+
+      // 6. Complaints
+      const complaintsRes = ownerId ? { rows: [] } : await db.query(`
+        SELECT c.id as txId, u.name as user, c.subject as cost, TO_CHAR(c.created_at, 'YYYY-MM-DD') as date
+        FROM complaints c JOIN users u ON u.id = c.user_id
+        ORDER BY c.created_at DESC LIMIT 10
       `);
 
       return {
@@ -169,15 +197,18 @@ const initSocket = (server) => {
       }
     });
 
-    if (socket.user.role.toUpperCase() === "ADMIN") {
-      socket.join("dashboard:admin");
-      const data = await getDashboardData();
+    const role = socket.user.role?.toUpperCase();
+    if (role === "ADMIN" || role === "SUPER_ADMIN" || role === "REST_OWNER") {
+      const room = role === "REST_OWNER" ? `dashboard:owner:${userId}` : "dashboard:admin";
+      socket.join(room);
+      
+      const data = await getDashboardData(role === "REST_OWNER" ? userId : null);
       if (data) socket.emit("dashboard:stats", data);
 
       const interval = setInterval(async () => {
-        const data = await getDashboardData();
+        const data = await getDashboardData(role === "REST_OWNER" ? userId : null);
         if (data) socket.emit("dashboard:stats", data);
-      }, 60000); // Periodic fallback every 60s
+      }, 60000);
       
       socket.on("disconnect", () => clearInterval(interval));
     }
@@ -190,10 +221,15 @@ const initSocket = (server) => {
   // Global listener for real-time updates
   const updateDashboards = async () => {
     console.log("Real-time data update triggered...");
-    const data = await getDashboardData();
-    if (data) {
-      io.to("dashboard:admin").emit("dashboard:stats", data);
+    
+    // Update global admins
+    const globalData = await getDashboardData();
+    if (globalData) {
+      io.to("dashboard:admin").emit("dashboard:stats", globalData);
     }
+
+    // Note: To be fully efficient, we could find which restaurant the event belongs to
+    // and only update that room. For now, this is a reasonable starting point.
   };
 
   dashboardEvents.on("transaction:created", updateDashboards);

@@ -18,21 +18,22 @@ import SmartToyIcon from "@mui/icons-material/SmartToy";
 import PersonIcon from "@mui/icons-material/Person";
 import { useTheme } from "@mui/material";
 import { io } from "socket.io-client";
-import { useLoginInfo } from "../utils/CustomHooks";
+
 import { GetColors } from "../utils/Theme";
 import { getAccessToken } from "../utils/authService";
+import { useSelector } from "react-redux";
 
 function AIChatDialog({ open, onClose }) {
   const theme = useTheme();
-  const colors = GetColors(theme.palette.mode);
-  const [logininfo] = useLoginInfo();
+  const { isAuthenticated, loading, accessToken } = useSelector(
+    (state) => state.auth,
+  );
 
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -80,19 +81,17 @@ function AIChatDialog({ open, onClose }) {
           timestamp: new Date(),
         },
       ]);
-      setLoading(false);
     });
 
     socketRef.current.on("connect_error", (err) => {
       console.error("Socket error:", err.message);
-      setLoading(false);
     });
 
     return () => {
       socketRef.current?.disconnect();
       socketRef.current = null;
     };
-  }, [open, logininfo?.accessToken]);
+  }, [open, accessToken]);
 
   const handleSend = () => {
     console.log("handleSend called - input:", input);
@@ -119,7 +118,6 @@ function AIChatDialog({ open, onClose }) {
 
     socketRef.current.emit("chat:message", input);
     setInput("");
-    setLoading(true);
   };
 
   const handleKeyDown = (e) => {
@@ -137,12 +135,12 @@ function AIChatDialog({ open, onClose }) {
           display: "flex",
           justifyContent: "space-between",
           borderBottom: `1px solid ${theme.palette.divider}`,
-          background: colors.primary[400],
-          color: colors.Font[400],
+          background: theme.palette.background.paper,
+          color: "text.primary",
         }}
       >
         <Box display="flex" alignItems="center" gap={1}>
-          <SmartToyIcon sx={{ color: colors.blueAccent[500] }} />
+          <SmartToyIcon sx={{ color: "primary.main" }} />
           <Typography variant="h6" fontWeight={600}>
             AI Assistant
           </Typography>
@@ -150,7 +148,7 @@ function AIChatDialog({ open, onClose }) {
         <IconButton onClick={onClose}>
           <CloseIcon
             sx={{
-              color: colors.Font[400],
+              color: "text.primary",
             }}
           />
         </IconButton>
@@ -189,7 +187,7 @@ function AIChatDialog({ open, onClose }) {
               {message.sender === "ai" && (
                 <Avatar
                   icon={<SmartToyIcon sx={{ color: "#fff" }} />}
-                  color={colors.blueAccent[500]}
+                  color={theme.palette.primary.main}
                 />
               )}
 
@@ -200,12 +198,12 @@ function AIChatDialog({ open, onClose }) {
                   p: 2,
                   backgroundColor:
                     message.sender === "user"
-                      ? colors.primary[400]
-                      : colors.Fixed[100],
+                      ? "primary.main"
+                      : "background.paper",
                   color:
                     message.sender === "user"
-                      ? colors.Font[400]
-                      : colors.Font[400],
+                      ? "white"
+                      : "text.primary",
                 }}
               >
                 <Box sx={{ "& p": { m: 0 } }}>
@@ -222,7 +220,7 @@ function AIChatDialog({ open, onClose }) {
               {message.sender === "user" && (
                 <Avatar
                   icon={<PersonIcon sx={{ color: "#fff" }} />}
-                  color={colors.redAccent[400]}
+                  color={theme.palette.secondary.main}
                 />
               )}
             </Box>
@@ -232,7 +230,7 @@ function AIChatDialog({ open, onClose }) {
             <Box display="flex" gap={1}>
               <Avatar
                 icon={<SmartToyIcon sx={{ color: "#fff" }} />}
-                color={colors.blueAccent[500]}
+                color={theme.palette.primary.main}
               />
               <Paper sx={{ p: 2 }}>
                 <CircularProgress size={18} />

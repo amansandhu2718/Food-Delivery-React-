@@ -35,6 +35,12 @@ const initDb = async () => {
     await db.query(
       `ALTER TABLE users ADD COLUMN IF NOT EXISTS current_long NUMERIC`
     );
+    await db.query(
+      `ALTER TABLE users ADD COLUMN IF NOT EXISTS addresses UUID[] DEFAULT '{}'`
+    );
+    await db.query(
+      `ALTER TABLE users ADD COLUMN IF NOT EXISTS current_address_id UUID REFERENCES user_addresses(id) ON DELETE SET NULL`
+    );
 
     // --- Products table ---
     await db.query(`
@@ -273,23 +279,30 @@ const initDb = async () => {
     await db.query(
       `ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image TEXT`
     );
+    await db.query(
+      `ALTER TABLE users ADD COLUMN IF NOT EXISTS is_blocked BOOLEAN DEFAULT FALSE`
+    );
+
+    await db.query(
+      `ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES users(id) ON DELETE SET NULL`
+    );
 
     console.log("Database schema ready");
 
     // -----------------------------
-    // Ensure at least one admin
+    // Ensure Super Admin exists
     // -----------------------------
-    const res = await db.query(`SELECT * FROM users WHERE role='ADMIN'`);
-    if (res.rows.length === 0) {
-      const passwordHash = await bcrypt.hash("password123", 10);
+    const superAdminRes = await db.query(`SELECT * FROM users WHERE role='SUPER_ADMIN'`);
+    if (superAdminRes.rows.length === 0) {
+      const passwordHash = await bcrypt.hash("superpassword123", 10);
       await db.query(
-        `INSERT INTO users (name, email, password, role)
-         VALUES ($1, $2, $3, 'ADMIN')`,
-        ["Admin User", "admin@test.com", passwordHash]
+        `INSERT INTO users (name, email, password, role, is_verified)
+         VALUES ($1, $2, $3, 'SUPER_ADMIN', TRUE)`,
+        ["Super Admin", "superadmin@cravvy.com", passwordHash]
       );
-      console.log("Admin created: admin@test.com / password123");
+      console.log("SUPER_ADMIN created: superadmin@cravvy.com / superpassword123");
     } else {
-      console.log("Admin already exists");
+      console.log("SUPER_ADMIN already exists");
     }
   } catch (err) {
     console.error("Database initialization failed", err);

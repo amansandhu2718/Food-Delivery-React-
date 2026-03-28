@@ -1,67 +1,75 @@
-import { Box } from "@mui/material";
-import { GetColors } from "../utils/Theme";
+import { Box, useTheme } from "@mui/material";
 import { ResponsiveLine } from "@nivo/line";
 
 export default function LineChart({
   data,
-  bgColor = "#ff0000",
-  fontColor = "#0000ff",
+  bgColor,
+  fontColor,
   isDashboard = false,
 }) {
+  const theme = useTheme();
+
   if (
     !Array.isArray(data) ||
     data.length === 0 ||
     data.some((serie) => !Array.isArray(serie.data))
   ) {
-    console.log(data);
     return null;
   }
+
+  const colors = [
+    theme.palette.primary.main,
+    theme.palette.secondary.main,
+    theme.palette.primary.light,
+    theme.palette.secondary.light,
+  ];
+
   return (
     <Box
       sx={{
         width: "100%",
         height: "100%",
-        // background: "red",
       }}
     >
-      <ResponsiveLine /* or Line for fixed dimensions */
+      <ResponsiveLine
         data={data}
-        colors={{ scheme: "set1" }}
+        colors={colors}
         theme={{
           grid: {
             line: {
-              stroke: fontColor, // 👈 grid line color
+              stroke: theme.palette.divider,
               strokeWidth: 1,
             },
           },
           axis: {
             domain: {
               line: {
-                stroke: fontColor,
+                stroke: fontColor || theme.palette.text.secondary,
               },
             },
             legend: {
               text: {
-                fill: fontColor,
+                fill: fontColor || theme.palette.text.secondary,
               },
             },
             ticks: {
               line: {
-                stroke: fontColor,
+                stroke: fontColor || theme.palette.text.secondary,
               },
               text: {
-                fill: fontColor,
+                fill: fontColor || theme.palette.text.secondary,
               },
             },
           },
           legends: {
             text: {
-              fill: fontColor,
+              fill: fontColor || theme.palette.text.secondary,
             },
           },
           tooltip: {
             container: {
-              color: bgColor,
+              color: theme.palette.mode === "dark" ? "#ffffff" : "#171717",
+              background: theme.palette.background.paper,
             },
           },
         }}
@@ -74,8 +82,14 @@ export default function LineChart({
           reverse: false,
         }}
         curve="catmullRom"
-        axisBottom={{ legend: "transportation", legendOffset: 36 }}
-        axisLeft={{ legend: "count", legendOffset: -40 }}
+        axisBottom={{
+          legend: isDashboard ? undefined : "Food",
+          legendOffset: 36,
+        }}
+        axisLeft={{
+          legend: isDashboard ? undefined : "count",
+          legendOffset: -40,
+        }}
         pointSize={10}
         pointColor={{ theme: "background" }}
         pointBorderWidth={2}

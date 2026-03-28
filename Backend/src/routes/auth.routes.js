@@ -27,6 +27,8 @@ router.post("/logout", authController.logout);
 router.get("/me", auth, authController.getCurrentUser);
 router.get("/users", auth, authController.getUsers);
 router.put("/users/:id", auth, authController.updateUserByAdmin);
+router.put("/users/:id/toggle-block", auth, authController.toggleBlockStatus);
+router.delete("/users/:id", auth, authController.deleteUser);
 router.put("/profile", auth, upload.single("image"), authController.updateProfile);
 
 module.exports = router;

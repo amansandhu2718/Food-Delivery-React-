@@ -1,47 +1,105 @@
 import {
   Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
   Drawer,
+  IconButton,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  IconButton,
+  Tooltip,
   Typography,
-  useTheme,
   useMediaQuery,
-  Divider,
+  useTheme,
 } from "@mui/material";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import LogoutIcon from "@mui/icons-material/Logout";
-import { GetColors } from "../../utils/Theme";
-import api from "../../utils/api";
 import { clearAccessToken } from "../../utils/authService";
-import { useLoginInfo } from "../../utils/CustomHooks";
+
 import FlagCircleIcon from "@mui/icons-material/FlagCircle";
+import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../../redux/Slices/authSlice";
+import api from "../../utils/api";
+import { postSeedDemo, postResetSystem } from "../../utils/adminMaintenance";
+
 const drawerWidth = 260;
 
 const AppSidebar = ({ open, SetOpen, data }) => {
   const theme = useTheme();
-  const colors = GetColors(theme.palette.mode);
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [maintLoading, setMaintLoading] = useState(null);
 
-  const [loginInfo, SetLoginInfo] = useLoginInfo();
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+  const userRole = user?.role?.toUpperCase();
 
   const handleLogout = async () => {
     try {
-      await api.post("/api/auth/logout", {});
+      await api.post("/api/auth/logout");
     } catch (e) {
-      // ignore
+      console.error(e);
     }
+    dispatch(logout());
     clearAccessToken();
-    SetLoginInfo(null);
+    localStorage.removeItem("accessToken");
     navigate("/login", { replace: true });
+  };
+
+  const goToFoodApp = () => {
+    navigate("/browse");
+    if (isMobile) SetOpen(false);
+  };
+
+  const handleSeedDemo = async () => {
+    setMaintLoading("seed");
+    try {
+      const res = await postSeedDemo();
+      alert(res.data.message);
+      window.location.reload();
+    } catch (err) {
+      alert("Seeding failed: " + (err.response?.data?.message || err.message));
+    } finally {
+      setMaintLoading(null);
+    }
+  };
+
+  const handleResetSystem = async () => {
+    if (
+      !window.confirm(
+        "CRITICAL WARNING: This will delete ALL data (users, restaurants, orders) except your account. This is irreversible. Are you absolutely sure?",
+      )
+    ) {
+      return;
+    }
+    setMaintLoading("reset");
+    try {
+      const res = await postResetSystem();
+      alert(res.data.message);
+      window.location.reload();
+    } catch (err) {
+      alert("Reset failed: " + (err.response?.data?.message || err.message));
+    } finally {
+      setMaintLoading(null);
+    }
+  };
+
+  const closeSettings = () => {
+    if (maintLoading) return;
+    setSettingsOpen(false);
   };
 
   const drawerContent = (
@@ -49,7 +107,8 @@ const AppSidebar = ({ open, SetOpen, data }) => {
       sx={{
         height: "100%",
         overflowY: "auto",
-        backgroundColor: colors.primary[400],
+        backgroundColor: theme.palette.background.paper,
+        borderRight: "1px solid " + (theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"),
         display: "flex",
         flexDirection: "column",
         scrollbarWidth: "none", // Firefox
@@ -60,39 +119,47 @@ const AppSidebar = ({ open, SetOpen, data }) => {
       }}
     >
       {/* Header */}
-      <Box sx={{ p: 2, textAlign: "center", color: colors.Font[400] }}>
-        <AccountCircleIcon sx={{ fontSize: 80, color: colors.Font[400] }} />
-        <Typography variant="h5">{loginInfo?.name || "User"}</Typography>
-        <Typography variant="h6" color={colors.Font[500]}>
-          {loginInfo?.email || "user@email.com"}
+      <Box sx={{ p: 4, textAlign: "center" }}>
+        <AccountCircleIcon sx={{ fontSize: 64, color: theme.palette.primary.main, mb: 2 }} />
+        <Typography variant="h5" sx={{ fontWeight: 800 }}>{user?.name || "Guest"}</Typography>
+        <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 600 }}>
+          {user?.email || "user@email.com"}
         </Typography>
       </Box>
 
       {/* Icons */}
-      <Divider
-        variant="middle"
-        sx={{
-          backgroundColor: colors.Font[400],
-        }}
-      />
+      <Divider variant="middle" sx={{ opacity: 0.1 }} />
 
-      <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
-        <IconButton sx={{ color: colors.Font[400] }}>
-          <FlagCircleIcon />
-        </IconButton>
-        <IconButton sx={{ color: colors.Font[400] }}>
-          <SettingsOutlinedIcon />
-        </IconButton>
-        <IconButton sx={{ color: colors.Font[400] }} onClick={handleLogout}>
-          <LogoutIcon />
-        </IconButton>
+      <Box sx={{ display: "flex", justifyContent: "center", gap: 1, py: 2 }}>
+        <Tooltip title="Open food app" arrow>
+          <IconButton
+            aria-label="Open food app"
+            sx={{ color: "text.secondary" }}
+            onClick={goToFoodApp}
+          >
+            <FlagCircleIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Settings" arrow>
+          <IconButton
+            aria-label="Settings"
+            sx={{ color: "text.secondary" }}
+            onClick={() => setSettingsOpen(true)}
+          >
+            <SettingsOutlinedIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Log out" arrow>
+          <IconButton
+            aria-label="Log out"
+            sx={{ color: "text.secondary" }}
+            onClick={handleLogout}
+          >
+            <LogoutIcon />
+          </IconButton>
+        </Tooltip>
       </Box>
-      <Divider
-        variant="middle"
-        sx={{
-          backgroundColor: colors.Font[400],
-        }}
-      />
+      <Divider variant="middle" sx={{ opacity: 0.1 }} />
       {/* Menu */}
       <List>
         {data &&
@@ -103,12 +170,12 @@ const AppSidebar = ({ open, SetOpen, data }) => {
                   key={`heading-${index}`}
                   variant="h6"
                   sx={{
-                    m: "15px 0 5px 20px",
-                    color: colors.Font[500],
+                    m: "25px 0 10px 25px",
+                    color: "primary.main",
                     textTransform: "uppercase",
-                    letterSpacing: "1px",
-                    fontSize: "0.75rem",
-                    fontWeight: "bold"
+                    letterSpacing: "0.2em",
+                    fontSize: "0.65rem",
+                    fontWeight: 900,
                   }}
                 >
                   {item.label}
@@ -119,20 +186,35 @@ const AppSidebar = ({ open, SetOpen, data }) => {
             let active = location.pathname === item.path;
 
             // Handle special cases for highlighting
-            if (item.path === "/admin/dashboard" && (location.pathname === "/admin/" || location.pathname === "/admin/dashboard")) {
+            if (
+              item.path === "/admin/dashboard" &&
+              (location.pathname === "/admin/" ||
+                location.pathname === "/admin/dashboard")
+            ) {
               active = true;
-            } else if (item.path === "/" && (location.pathname === "/" || location.pathname === "/browse")) {
+            } else if (
+              item.path === "/" &&
+              (location.pathname === "/" || location.pathname === "/browse")
+            ) {
               active = true;
             }
 
             // Highlight "Search Food" when on a food-related page
-            if (item.path === "/ExploreFood" && (location.pathname === "/ExploreFood" || location.pathname.startsWith("/food/"))) {
+            if (
+              item.path === "/ExploreFood" &&
+              (location.pathname === "/ExploreFood" ||
+                location.pathname.startsWith("/food/"))
+            ) {
               active = true;
             }
 
             // Highlight "Explore Restaurants" when on a menu-related page
-            if ((item.path === "/explore" || item.path === "/Explore") &&
-              (location.pathname === "/explore" || location.pathname === "/Explore" || location.pathname.startsWith("/menu/"))) {
+            if (
+              (item.path === "/explore" || item.path === "/Explore") &&
+              (location.pathname === "/explore" ||
+                location.pathname === "/Explore" ||
+                location.pathname.startsWith("/menu/"))
+            ) {
               active = true;
             }
             return (
@@ -144,16 +226,17 @@ const AppSidebar = ({ open, SetOpen, data }) => {
                   if (isMobile) SetOpen(false);
                 }}
                 sx={{
-                  borderRadius: 3,
-                  margin: "2px 10px",
-                  color: colors.Font[400],
+                  borderRadius: "100px",
+                  margin: "8px 16px",
+                  py: 1.5,
+                  color: "text.secondary",
                   "&.Mui-selected": {
-                    backgroundColor: "#6f6b9477",
-                    color: colors.Font[500],
-                    fontWeight: 600,
+                    backgroundColor: "primary.main",
+                    color: "white",
+                    "& .MuiListItemIcon-root": { color: "white" },
                   },
                   "&:hover": {
-                    backgroundColor: "#ffffff11",
+                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
                   },
                 }}
               >
@@ -173,28 +256,107 @@ const AppSidebar = ({ open, SetOpen, data }) => {
 
   return (
     <>
-      <Box>
-        <Drawer
-          variant={isMobile ? "temporary" : "permanent"}
-          open={isMobile ? open : true}
-          onClose={() => SetOpen(false)}
-          sx={{
+    <Box
+      sx={{
+        flexShrink: 0,
+        alignSelf: "stretch",
+        height: { xs: "auto", md: "100vh" },
+      }}
+    >
+      <Drawer
+        variant={isMobile ? "temporary" : "permanent"}
+        open={isMobile ? open : true}
+        onClose={() => SetOpen(false)}
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          "& .MuiDrawer-paper": {
             width: drawerWidth,
-            "& .MuiDrawer-paper": {
-              width: drawerWidth,
-              backgroundColor: colors.primary[400],
-              border: "none",
-              height: "100%",
-              overflow: "hidden", // Let inner Box handle scroll
-            },
-            "& .MuiBackdrop-root": {
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-            },
-          }}
-        >
-          {drawerContent}
-        </Drawer>
-      </Box>
+            boxSizing: "border-box",
+            backgroundColor: theme.palette.background.paper,
+            border: "none",
+            position: isMobile ? "fixed" : "sticky",
+            top: 0,
+            height: { xs: "100%", md: "100vh" },
+            maxHeight: "100vh",
+            overflow: "hidden",
+          },
+          "& .MuiBackdrop-root": {
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+          },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+    </Box>
+
+    <Dialog
+      open={settingsOpen}
+      onClose={closeSettings}
+      disableEscapeKeyDown={!!maintLoading}
+      fullWidth
+      maxWidth="sm"
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: "divider",
+        },
+      }}
+    >
+      <DialogTitle sx={{ fontWeight: 800, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        Settings
+      </DialogTitle>
+      <DialogContent dividers sx={{ borderColor: "divider" }}>
+        {userRole === "SUPER_ADMIN" ? (
+          <>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Demo data and full system reset affect every user and restaurant. Use only on local or test environments.
+            </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+              <Button
+                variant="contained"
+                fullWidth
+                disabled={!!maintLoading}
+                loading={maintLoading === "seed"}
+                startIcon={<AutoFixHighIcon />}
+                onClick={handleSeedDemo}
+                sx={{
+                  py: 1.25,
+                  borderRadius: "999px",
+                  fontWeight: 800,
+                  background: "linear-gradient(135deg, #1e88e5 0%, #00acc1 100%)",
+                  boxShadow: "none",
+                }}
+              >
+                Seed demo data
+              </Button>
+              <Button
+                variant="contained"
+                color="error"
+                fullWidth
+                disabled={!!maintLoading}
+                loading={maintLoading === "reset"}
+                startIcon={<RestartAltIcon />}
+                onClick={handleResetSystem}
+                sx={{ py: 1.25, borderRadius: "999px", fontWeight: 800, boxShadow: "none" }}
+              >
+                Reset system
+              </Button>
+            </Box>
+          </>
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            System seed and reset are available only to super administrators. Contact a super admin if you need a fresh demo dataset.
+          </Typography>
+        )}
+      </DialogContent>
+      <DialogActions sx={{ px: 3, py: 2 }}>
+        <Button onClick={closeSettings} disabled={!!maintLoading} sx={{ borderRadius: "999px" }}>
+          Close
+        </Button>
+      </DialogActions>
+    </Dialog>
     </>
   );
 };

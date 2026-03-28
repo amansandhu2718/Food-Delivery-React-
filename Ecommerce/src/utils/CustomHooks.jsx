@@ -22,7 +22,7 @@ const useLocalStorage = (key, initialValue) => {
     // Broadcast change so other hook instances update too
     try {
       window.dispatchEvent(
-        new CustomEvent("local-storage", { detail: { key, value } })
+        new CustomEvent("local-storage", { detail: { key, value } }),
       );
     } catch (e) {
       // ignore
@@ -58,9 +58,3 @@ const useLocalStorage = (key, initialValue) => {
 };
 
 export default useLocalStorage;
-
-// Shared login info hook backed by localStorage so all components
-// see the same authentication state across the app.
-export const useLoginInfo = () => {
-  return useLocalStorage("loginInfo", null);
-};

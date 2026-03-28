@@ -68,90 +68,56 @@ export default function Invoices() {
     },
   ];
 
-  const ThemeCss = () => {
-    let themeData = {
-      mt: 3,
-      "& .MuiDataGrid-toolbar": {
-        backgroundColor: "#141414ff !important",
-        color: "#ffffff !important",
+  const themeData = {
+    mt: 3,
+    border: "none",
+    "& .MuiDataGrid-root": {
+      border: "none",
+    },
+    "& .MuiDataGrid-cell": {
+      borderBottom: "1px solid " + theme.palette.divider,
+      color: "text.primary",
+      fontWeight: 500,
+    },
+    "& .MuiDataGrid-columnHeader": {
+      backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.02)",
+      borderBottom: "2px solid " + theme.palette.primary.main,
+      color: "text.primary",
+      fontWeight: 900,
+      textTransform: "uppercase",
+      letterSpacing: "0.1em",
+    },
+    "& .MuiDataGrid-virtualScroller": {
+      backgroundColor: "transparent",
+    },
+    "& .MuiDataGrid-footerContainer": {
+      borderTop: "1px solid " + theme.palette.divider,
+      backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.01)",
+    },
+    "& .MuiDataGrid-toolbarContainer": {
+      padding: "12px",
+      backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.01)",
+      "& .MuiButton-root": {
+        color: "primary.main",
+        fontWeight: 800,
       },
-      "& .MuiDataGrid-footerContainer": {
-        backgroundColor: "#141414ff !important",
-        color: "#ffffff !important",
-      },
-      "& .MuiDataGrid-columnHeader": {
-        backgroundColor: "#141414ff",
-        color: "#ffffff !important",
-      },
-
-      "& .name-column--cell": {
-        color: colors.blueAccent[600],
-      },
-      "& .MuiButtonBase-root.MuiCheckbox-root.Mui-checked": {
-        color: colors.greenAccent[300] + " !important",
-      },
-    };
-
-    if (theme.palette.mode == "light") {
-      themeData = {
-        mt: 3,
-        // color: colors.grey[100],
-
-        // "--DataGrid-t-header-background-base":
-        //   colors.primary[400] + " !important",
-        // "--DataGrid-t-color-background-base": colors.grey[100] + " !important",
-        "& .MuiTablePagination-root": {
-          // border: "1px solid black",
-          color: "#ffffff !important",
-        },
-        "& .MuiDataGrid-columnHeader": {
-          backgroundColor: colors.primary[400] + " !important",
-          color: "#ffffff !important",
-        },
-        "& .MuiDataGrid-footerContainer": {
-          backgroundColor: colors.primary[400] + " !important",
-          color: "#ffffff !important",
-        },
-        "& .Mui-disabled": {
-          color: "#ffffff",
-        },
-        "& .MuiDataGrid-sortButton": {
-          color: "#ffffff",
-          backgroundColor: colors.primary[400] + " !important",
-        },
-        "& .MuiTablePagination-selectIcon": {
-          color: "#ffffff !important",
-        },
-
-        "& .MuiDataGrid-row": {
-          backgroundColor: colors.grey[800] + " !important",
-          border: "1px solid " + colors.grey[200],
-        },
-        "& .MuiDataGrid-toolbar": {
-          backgroundColor: colors.primary[400] + " !important",
-          color: "#ffffff !important",
-        },
-        "& .MuiButtonBase-root": {
-          color: "#ffffff !important",
-          //   backgroundColor: colors.primary[400] + " !important",
-        },
-
-        "& .MuiDataGrid-filler": {
-          backgroundColor: colors.primary[400] + " !important",
-        },
-        "& .MuiButtonBase-root.MuiCheckbox-root": {
-          color: "#8f8f8fff !important",
-        },
-        "& .MuiButtonBase-root.MuiCheckbox-root.Mui-checked": {
-          color: colors.greenAccent[300] + " !important",
-        },
-
-        "& .Mui-selected": {
-          border: "none",
-        },
-      };
-    }
-    return themeData;
+    },
+    "& .MuiCheckbox-root": {
+      color: theme.palette.primary.main + " !important",
+    },
+    "& .name-column--cell": {
+      color: "secondary.main",
+      fontWeight: 800,
+    },
+    "& .MuiDataGrid-row:hover": {
+      backgroundColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.03)" : "rgba(1, 128, 41, 0.04)",
+    },
+    "& .MuiDataGrid-row.Mui-selected": {
+      backgroundColor: theme.palette.mode === "dark" ? "rgba(1, 128, 41, 0.2)" : "rgba(1, 128, 41, 0.08)",
+      "&:hover": {
+        backgroundColor: theme.palette.mode === "dark" ? "rgba(1, 128, 41, 0.3)" : "rgba(1, 128, 41, 0.12)",
+      }
+    },
   };
 
   return (
@@ -169,7 +135,7 @@ export default function Invoices() {
           }}
         >
           <DataGrid
-            sx={ThemeCss()}
+            sx={themeData}
             rows={mockDataInvoices}
             columns={columns}
             showToolbar

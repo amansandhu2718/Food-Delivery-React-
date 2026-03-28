@@ -20,7 +20,7 @@ exports.getAddresses = async (req, res) => {
       FROM user_addresses
       WHERE user_id = $1
       ORDER BY is_default DESC, created_at DESC`,
-      [userId]
+      [userId],
     );
 
     res.json(rows);
@@ -49,7 +49,7 @@ exports.createAddress = async (req, res) => {
       if (isDefault) {
         await client.query(
           `UPDATE user_addresses SET is_default = FALSE WHERE user_id = $1`,
-          [userId]
+          [userId],
         );
       }
 
@@ -77,10 +77,17 @@ exports.createAddress = async (req, res) => {
           long,
           isDefault || false,
           label,
-        ]
+        ],
       );
 
       await client.query("COMMIT");
+
+      // Update user's addresses array
+      await db.query(
+        `UPDATE users SET addresses = array_append(addresses, $1) WHERE id = $2`,
+        [result.rows[0].id, userId],
+      );
+
       res.status(201).json(result.rows[0]);
     } catch (err) {
       await client.query("ROLLBACK");
@@ -110,7 +117,7 @@ exports.updateAddress = async (req, res) => {
       if (isDefault) {
         await client.query(
           `UPDATE user_addresses SET is_default = FALSE WHERE user_id = $1 AND id != $2`,
-          [userId, addressId]
+          [userId, addressId],
         );
       }
 
@@ -146,7 +153,7 @@ exports.updateAddress = async (req, res) => {
           label,
           addressId,
           userId,
-        ]
+        ],
       );
 
       if (result.rows.length === 0) {
@@ -175,7 +182,16 @@ exports.deleteAddress = async (req, res) => {
 
     await db.query(
       `DELETE FROM user_addresses WHERE id = $1 AND user_id = $2`,
-      [addressId, userId]
+      [addressId, userId],
+    );
+
+    // Remove from user's addresses array and unset current if it was this address
+    await db.query(
+      `UPDATE users 
+       SET addresses = array_remove(addresses, $1),
+           current_address_id = CASE WHEN current_address_id = $1 THEN NULL ELSE current_address_id END
+       WHERE id = $2`,
+      [addressId, userId],
     );
 
     res.json({ message: "Address deleted" });
@@ -190,21 +206,31 @@ exports.updateCurrentLocation = async (req, res) => {
   try {
     console.log("Updating current location for user:", req.user, req.body);
     const userId = req.user.id;
-    const { location, lat, long } = req.body;
+    const { addressId, location, lat, long } = req.body;
 
-    console.log(
-      "Updating current location for user:",
-      req.user,
-      location,
-      lat,
-      long
-    );
-    await db.query(
-      `UPDATE users 
-       SET current_location = $1, current_lat = $2, current_long = $3
-       WHERE id = $4`,
-      [location, lat, long, userId]
-    );
+    if (addressId) {
+      // Set current address ID and sync ALL coordinates/details
+      await db.query(
+        `UPDATE users 
+         SET current_address_id = $1, 
+             current_location = (SELECT address_line FROM user_addresses WHERE id = $1 AND user_id = $2),
+             current_lat = (SELECT lat FROM user_addresses WHERE id = $1 AND user_id = $2),
+             current_long = (SELECT long FROM user_addresses WHERE id = $1 AND user_id = $2)
+         WHERE id = $2`,
+        [addressId, userId],
+      );
+    } else {
+      // Custom location (e.g. current GPS)
+      await db.query(
+        `UPDATE users 
+         SET current_location = $1, 
+             current_lat = $2, 
+             current_long = $3, 
+             current_address_id = NULL
+         WHERE id = $4`,
+        [location, lat, long, userId],
+      );
+    }
 
     res.json({ message: "Location updated" });
   } catch (err) {
@@ -220,12 +246,26 @@ exports.getCurrentLocation = async (req, res) => {
     const userId = req.user.id;
 
     const { rows } = await db.query(
-      `SELECT current_location AS location, current_lat AS lat, current_long AS long
-       FROM users WHERE id = $1`,
-      [userId]
+      `SELECT 
+        COALESCE(ua.address_line, u.current_location) AS location, 
+        COALESCE(ua.lat, u.current_lat) AS lat, 
+        COALESCE(ua.long, u.current_long) AS long,
+        u.current_address_id AS "currentAddressId",
+        ua.id,
+        COALESCE(ua.address_line, u.current_location) AS "addressLine",
+        ua.city,
+        ua.state,
+        ua.pincode,
+        ua.lat AS "addressLat",
+        ua.long AS "addressLong",
+        ua.is_default AS "isDefault",
+        ua.label,
+        CASE WHEN ua.id IS NOT NULL THEN 'joined_address' ELSE 'user_cache' END AS "data_source_debug"
+       FROM users u
+       LEFT JOIN user_addresses ua ON u.current_address_id = ua.id
+       WHERE u.id = $1`,
+      [userId],
     );
-
-    // console.log("Fetching current location for user:", res.json(rows[0] || {}));
 
     res.json(rows[0] || {});
   } catch (err) {

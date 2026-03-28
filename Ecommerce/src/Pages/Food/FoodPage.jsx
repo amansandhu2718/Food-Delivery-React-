@@ -7,10 +7,12 @@ import {
   Container,
   Stack,
   Divider,
+  InputBase,
   colors,
   useTheme,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import SearchIcon from "@mui/icons-material/Search";
 
 import FoodItem from "../../Components/FoodItem";
 import { GetColors } from "../../utils/Theme";
@@ -126,11 +128,13 @@ const ratingOptions = [4, 4.5];
    COMPONENT
 ======================= */
 
+import DishCard from "../../Components/DishCard";
+
 function FoodPage() {
   const theme = useTheme();
-  let colors = GetColors(theme.palette.mode);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [minRating, setMinRating] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [dishesData, setDishesData] = useState([]);
   const [favorites, setFavorites] = useState([]);
 
@@ -167,172 +171,348 @@ function FoodPage() {
 
       if (minRating && dish.rating < minRating) return false;
 
+      if (searchTerm) {
+        const lowerSearch = searchTerm.toLowerCase();
+        const matchesName = dish.name?.toLowerCase().includes(lowerSearch);
+        const matchesCategory = dish.category
+          ?.toLowerCase()
+          .includes(lowerSearch);
+        if (!matchesName && !matchesCategory) return false;
+      }
+
       return true;
     });
-  }, [dishesData, selectedCategories, minRating]);
-
-  /* =======================
-     UI
-  ======================= */
+  }, [dishesData, selectedCategories, minRating, searchTerm]);
 
   return (
-    <Box
-      sx={{
-        paddingLeft: 2,
-        paddingRight: 2,
-      }}
-    >
+    <Box sx={{ bgcolor: "background.default", minHeight: "100vh" }}>
+      {/* HERO */}
       <Box
-        sx={{ minHeight: "100vh", bgcolor: theme.palette.background.default }}
+        sx={{
+          py: { xs: 8, md: 12 },
+          textAlign: "center",
+          background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+          color: "white",
+          position: "relative",
+          overflow: "hidden",
+        }}
       >
-        {/* HERO */}
-        <Box
-          sx={{
-            py: { xs: 4, md: 6 },
-            textAlign: "center",
-            background: "linear-gradient(135deg, #3f2aa0 0%, #ff8a65 100%)",
-            color: "#fff",
-          }}
+        <Container
+          maxWidth="xxl"
+          sx={{ px: { xs: 2, md: 8 }, position: "relative", zIndex: 1 }}
         >
-          <Typography variant="h4" fontWeight={700}>
-            Find Your Favorite Food
-          </Typography>
-          <Typography sx={{ mt: 1, opacity: 0.9 }}>
-            Discover dishes from top restaurants near you
-          </Typography>
-        </Box>
-
-        <Container maxWidth="lg" sx={{ mt: -4 }}>
-          {/* FILTER PANEL */}
-          <Box
+          <Typography
+            variant="h1"
             sx={{
-              bgcolor: theme.palette.background.paper,
-              p: 2.5,
-              borderRadius: 2,
-              boxShadow: 3,
-              mb: 3,
+              fontWeight: 900,
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              letterSpacing: "-0.04em",
+              mb: 2,
             }}
           >
+            Summer Specialties
+          </Typography>
+          <Typography
+            sx={{
+              opacity: 0.9,
+              fontWeight: 700,
+              letterSpacing: "0.2em",
+              fontSize: "0.75rem",
+              textTransform: "uppercase",
+            }}
+          >
+            DISCOVER THE SEASON'S FINEST PLATING
+          </Typography>
+        </Container>
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            opacity: 0.1,
+            background: "radial-gradient(#ffffff 2px, transparent 2px)",
+            backgroundSize: "32px 32px",
+          }}
+        />
+      </Box>
+
+      <Container
+        maxWidth="xxl"
+        sx={{ mt: -4, px: { xs: 2, md: 8 }, position: "relative", zIndex: 10 }}
+      >
+        {/* FILTER PANEL */}
+        <Box
+          sx={{
+            bgcolor: "background.paper",
+            p: 4,
+            borderRadius: "32px",
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? "0 20px 50px rgba(0,0,0,0.5)"
+                : "0 20px 50px rgba(0,0,0,0.08)",
+            border:
+              "1px solid " +
+              (theme.palette.mode === "dark"
+                ? "rgba(255,255,255,0.05)"
+                : "rgba(0,0,0,0.05)"),
+            mb: 6,
+          }}
+        >
+          <Stack direction="row" spacing={3} alignItems="center" sx={{ mb: 4 }}>
+            <Box
+              sx={{
+                flex: 1,
+                bgcolor:
+                  theme.palette.mode === "dark"
+                    ? "rgba(255,255,255,0.05)"
+                    : "rgba(0,0,0,0.04)",
+                borderRadius: "100px",
+                px: 3,
+                height: "56px",
+                display: "flex",
+                alignItems: "center",
+                transition: "all 0.3s ease",
+                border: "1px solid transparent",
+                "&:focus-within": {
+                  bgcolor:
+                    theme.palette.mode === "dark"
+                      ? "rgba(255,255,255,0.08)"
+                      : "white",
+                  borderColor: "primary.main",
+                  boxShadow: "0 0 0 4px " + theme.palette.primary.main + "20",
+                },
+              }}
+            >
+              <SearchIcon sx={{ color: "text.secondary", mr: 2 }} />
+              <InputBase
+                placeholder="Search for your favorite dishes or specialties..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                sx={{
+                  flex: 1,
+                  fontSize: "1rem",
+                  fontWeight: 600,
+                  "& input::placeholder": {
+                    color: "text.secondary",
+                    opacity: 0.7,
+                  },
+                }}
+              />
+            </Box>
+          </Stack>
+
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {/* CATEGORY FILTERS */}
-            <Typography fontWeight={600} mb={1}>
-              Categories
-            </Typography>
-
-            <Stack direction="row" spacing={1} flexWrap="wrap" mb={2}>
-              {categories.map((cat) => {
-                const active = selectedCategories.includes(cat);
-                return (
-                  <Chip
-                    key={cat}
-                    label={cat}
-                    clickable
-                    onClick={() =>
-                      setSelectedCategories((prev) =>
-                        prev.includes(cat)
-                          ? prev.filter((c) => c !== cat)
-                          : [...prev, cat]
-                      )
-                    }
-                    sx={chipStyle(active, colors)}
-                  />
-                );
-              })}
-            </Stack>
-
-            {/* RATING FILTER */}
-            <Typography fontWeight={600} mb={1}>
-              Rating
-            </Typography>
-
-            <Stack direction="row" spacing={1} flexWrap="wrap">
-              {ratingOptions.map((rate) => {
-                const active = minRating === rate;
-                return (
-                  <Chip
-                    key={rate}
-                    label={`⭐ ${rate}+`}
-                    clickable
-                    onClick={() =>
-                      setMinRating((prev) => (prev === rate ? null : rate))
-                    }
-                    sx={chipStyle(active, colors)}
-                  />
-                );
-              })}
-            </Stack>
-
-            {/* APPLIED FILTERS */}
-            {(selectedCategories.length || minRating) && (
-              <>
-                <Divider sx={{ my: 2 }} />
-                <Stack direction="row" spacing={1} flexWrap="wrap">
-                  {selectedCategories.map((cat) => (
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: 900,
+                  color: "text.secondary",
+                  letterSpacing: "0.1em",
+                  display: "block",
+                  mb: 2,
+                }}
+              >
+                CATEGORIES
+              </Typography>
+              <Stack
+                direction="row"
+                spacing={1.5}
+                flexWrap="wrap"
+                useFlexGap
+                sx={{ gap: 1.5 }}
+              >
+                {categories.map((cat) => {
+                  const active = selectedCategories.includes(cat);
+                  return (
                     <Chip
                       key={cat}
                       label={cat}
-                      onDelete={() =>
+                      clickable
+                      onClick={() =>
                         setSelectedCategories((prev) =>
-                          prev.filter((c) => c !== cat)
+                          prev.includes(cat)
+                            ? prev.filter((c) => c !== cat)
+                            : [...prev, cat],
                         )
                       }
-                      deleteIcon={<CloseIcon />}
-                    // color="primary"
+                      sx={chipStyle(active, theme)}
                     />
-                  ))}
+                  );
+                })}
+              </Stack>
+            </Box>
 
-                  {minRating && (
+            {/* RATING FILTER */}
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: 900,
+                  color: "text.secondary",
+                  letterSpacing: "0.1em",
+                  display: "block",
+                  mb: 2,
+                }}
+              >
+                MINIMUM RATING
+              </Typography>
+              <Stack
+                direction="row"
+                spacing={1.5}
+                flexWrap="wrap"
+                useFlexGap
+                sx={{ gap: 1.5 }}
+              >
+                {ratingOptions.map((rate) => {
+                  const active = minRating === rate;
+                  return (
                     <Chip
-                      label={`Rating ≥ ${minRating}`}
-                      onDelete={() => setMinRating(null)}
-                      deleteIcon={<CloseIcon />}
-                    // color="primary"
+                      key={rate}
+                      label={`⭐ ${rate}+`}
+                      clickable
+                      onClick={() =>
+                        setMinRating((prev) => (prev === rate ? null : rate))
+                      }
+                      sx={chipStyle(active, theme)}
                     />
-                  )}
-                </Stack>
-              </>
-            )}
+                  );
+                })}
+              </Stack>
+            </Box>
           </Box>
 
-          {/* FOOD GRID */}
+          {/* APPLIED FILTERS */}
+          {(selectedCategories.length > 0 || minRating) && (
+            <Box
+              sx={{
+                mt: 4,
+                pt: 3,
+                borderTop: "1px solid " + theme.palette.divider,
+              }}
+            >
+              <Stack direction="row" spacing={1.5} flexWrap="wrap">
+                {selectedCategories.map((cat) => (
+                  <AppliedChip
+                    key={cat}
+                    label={cat.toUpperCase()}
+                    onDelete={() =>
+                      setSelectedCategories((prev) =>
+                        prev.filter((c) => c !== cat),
+                      )
+                    }
+                  />
+                ))}
+                {minRating && (
+                  <AppliedChip
+                    label={`RATING: ${minRating}+`}
+                    onDelete={() => setMinRating(null)}
+                  />
+                )}
+              </Stack>
+            </Box>
+          )}
+        </Box>
+
+        {/* FOOD GRID */}
+        <Box
+          sx={{
+            mb: 4,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+          }}
+        >
+          <Typography variant="h4" sx={{ fontWeight: 800 }}>
+            Exploration Gallery
+          </Typography>
+          <Typography
+            sx={{
+              color: "text.secondary",
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              opacity: 0.6,
+            }}
+          >
+            {filteredDishes.length} SPECIALTIES FOUND
+          </Typography>
+        </Box>
+
+        {filteredDishes.length === 0 ? (
+          <Box
+            sx={{
+              textAlign: "center",
+              py: 15,
+              bgcolor: "background.paper",
+              borderRadius: "32px",
+              border: "1px dashed " + theme.palette.divider,
+            }}
+          >
+            <Typography
+              variant="h5"
+              color="text.secondary"
+              fontWeight={800}
+              sx={{ opacity: 0.5 }}
+            >
+              No dishes found matching your filters.
+            </Typography>
+          </Box>
+        ) : (
           <Box
             sx={{
               display: "grid",
               gridTemplateColumns: {
-                xs: "repeat(3, 1fr)",
-                sm: "repeat(4, 1fr)",
-                md: "repeat(6, 1fr)",
+                xs: "repeat(2, 1fr)",
+                sm: "repeat(3, 1fr)",
+                md: "repeat(4, 1fr)",
+                lg: "repeat(6, 1fr)",
               },
-              gap: 2,
-              pb: 4,
+              gap: 4,
+              pb: 8,
             }}
           >
             {filteredDishes.map((dish) => (
-              <FoodItem
+              <DishCard
                 key={dish.id}
-                dish={{ ...dish, isFavorite: favorites.includes(dish.id) }}
+                {...dish}
+                isFavorite={favorites.includes(dish.id)}
               />
             ))}
           </Box>
-
-          {filteredDishes.length === 0 && (
-            <Typography textAlign="center" color="text.secondary">
-              No dishes found matching your filters.
-            </Typography>
-          )}
-        </Container>
-      </Box>
+        )}
+      </Container>
     </Box>
   );
 }
 
-const chipStyle = (active, colors) => ({
-  bgcolor: active ? colors.greenAccent[500] : "transparent",
-  color: active ? colors.Font[100] : "inherit",
+const AppliedChip = ({ label, onDelete }) => (
+  <Chip
+    label={label}
+    onDelete={onDelete}
+    deleteIcon={<CloseIcon sx={{ fontSize: "14px !important" }} />}
+    sx={{
+      bgcolor: "secondary.main",
+      color: "white",
+      fontWeight: 900,
+      fontSize: "0.6rem",
+      height: "28px",
+      letterSpacing: "0.05em",
+      "& .MuiChip-deleteIcon": {
+        color: "white !important",
+        "&:hover": { opacity: 0.8 },
+      },
+    }}
+  />
+);
+
+const chipStyle = (active, theme) => ({
+  bgcolor: active ? theme.palette.primary.main : "transparent",
+  color: active ? "white" : "inherit",
   fontWeight: 600,
   fontSize: "0.75rem",
-  border: active ? "none" : `1px solid ${colors.Font[400]}`,
+  border: active ? "none" : `1px solid ${theme.palette.divider}`,
   "&:hover": {
-    bgcolor: active ? colors.greenAccent[600] : "action.hover",
+    bgcolor: active ? theme.palette.primary.dark : "action.hover",
   },
 });
 

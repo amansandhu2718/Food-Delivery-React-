@@ -4,6 +4,11 @@ import {
   TextField,
   useMediaQuery,
   useTheme,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  FormHelperText,
 } from "@mui/material";
 import Header from "../../Components/Header";
 import { Formik } from "formik";
@@ -13,6 +18,7 @@ import { toast } from "react-toastify";
 import api from "../../utils/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 export default function CreateOwner() {
   const theme = useTheme();
@@ -20,30 +26,33 @@ export default function CreateOwner() {
   const { id } = useParams();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const colors = GetColors(theme.palette.mode);
+  const { user: currentUser } = useSelector((state) => state.auth);
 
   const [initialValues, setInitialValues] = useState({
     name: "",
     email: "",
     password: "",
     phone: "",
+    role: "REST_OWNER",
   });
 
   useEffect(() => {
     if (id) {
       const fetchOwner = async () => {
         try {
-          const res = await api.get(`/api/auth/users?id=${id}`); // Assuming we can filter by ID
+          const res = await api.get(`/api/auth/users?id=${id}`);
           const owner = res.data.find(u => u.id == id);
           if (owner) {
             setInitialValues({
               name: owner.name,
               email: owner.email,
-              password: "", // Don't show password
+              password: "",
               phone: owner.phone || "",
+              role: owner.role || "REST_OWNER",
             });
           }
         } catch (err) {
-          toast.error("Failed to fetch owner details");
+          toast.error("Failed to fetch account details");
         }
       };
       fetchOwner();
@@ -52,18 +61,24 @@ export default function CreateOwner() {
 
   const HandleSubmitForm = async (values, { resetForm }) => {
     try {
+      // If Admin is creating, they can only create REST_OWNER
+      const role =
+        currentUser?.role?.toUpperCase() === "SUPER_ADMIN"
+          ? values.role
+          : "REST_OWNER";
+      
       if (id) {
         await api.put(`/api/auth/users/${id}`, {
           ...values,
-          role: "REST_OWNER",
+          role,
         });
-        toast.success("Owner Updated Successfully");
+        toast.success("Account Updated Successfully");
       } else {
         await api.post("/api/auth/register", {
           ...values,
-          role: "REST_OWNER",
+          role,
         });
-        toast.success("Restaurant Owner Created Successfully");
+        toast.success("Account Created Successfully");
       }
       resetForm();
       navigate("/admin/owners");
@@ -75,15 +90,20 @@ export default function CreateOwner() {
   const userSchema = yup.object().shape({
     name: yup.string().required("required"),
     email: yup.string().email("invalid email").required("required"),
-    password: yup.string().min(6, "too short").required("required"),
+    password: yup.string().when('id', {
+      is: (val) => !val, // Only required for new users
+      then: (schema) => schema.min(6, "too short").required("required"),
+      otherwise: (schema) => schema.min(6, "too short").optional(),
+    }),
     phone: yup.string().required("required"),
+    role: yup.string().required("required"),
   });
 
   return (
     <Box p="20px">
       <Header
-        title={id ? "EDIT OWNER" : "CREATE OWNER"}
-        subtitle={id ? "Update restaurant owner details" : "Create a new Restaurant Owner account"}
+        title={id ? "EDIT ACCOUNT" : "CREATE ACCOUNT"}
+        subtitle={id ? "Update account details" : "Create a new Admin or Owner account"}
       />
       <Box mt="40px" display="flex" justifyContent="center">
         <Formik
@@ -133,6 +153,23 @@ export default function CreateOwner() {
                   helperText={touched.email && errors.email}
                   sx={{ gridColumn: "span 4" }}
                 />
+                
+                {currentUser?.role?.toUpperCase() === "SUPER_ADMIN" && (
+                  <FormControl fullWidth variant="filled" sx={{ gridColumn: "span 4" }} error={!!touched.role && !!errors.role}>
+                    <InputLabel>Role</InputLabel>
+                    <Select
+                      name="role"
+                      value={values.role}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                    >
+                      <MenuItem value="ADMIN">ADMIN</MenuItem>
+                      <MenuItem value="REST_OWNER">RESTAURANT OWNER</MenuItem>
+                    </Select>
+                    {touched.role && errors.role && <FormHelperText>{errors.role}</FormHelperText>}
+                  </FormControl>
+                )}
+
                 <TextField
                   fullWidth
                   variant="filled"
@@ -166,7 +203,7 @@ export default function CreateOwner() {
                   color="secondary"
                   sx={{ px: 4, py: 1 }}
                 >
-                  {id ? "Update Owner" : "Create Owner"}
+                  {id ? "Update Account" : "Create Account"}
                 </Button>
               </Box>
             </form>

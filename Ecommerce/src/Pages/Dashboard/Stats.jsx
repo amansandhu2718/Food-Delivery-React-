@@ -1,10 +1,8 @@
 import { Box, Typography, useTheme } from "@mui/material";
-import { GetColors } from "../../utils/Theme";
 import ProgressCircle from "../../Components/ProgressCircle";
 
 export default function Stats({ title, subtitle, icon, progress, increase }) {
   const theme = useTheme();
-  const colors = GetColors(theme.palette.mode);
   return (
     <>
       <Box
@@ -22,10 +20,11 @@ export default function Stats({ title, subtitle, icon, progress, increase }) {
           <Box>
             {icon}
             <Typography
-              variant="h4"
-              fontWeight="bold"
+              variant="h3"
               sx={{
-                color: colors.Font[400],
+                fontWeight: 900,
+                color: "text.primary",
+                mt: 1,
               }}
             >
               {title}
@@ -42,18 +41,20 @@ export default function Stats({ title, subtitle, icon, progress, increase }) {
           }}
         >
           <Typography
-            variant="h6"
+            variant="body2"
             sx={{
-              color: colors.greenAccent[400],
+              color: "primary.main",
+              fontWeight: 800,
+              letterSpacing: "0.05em",
             }}
           >
             {subtitle}
           </Typography>
           <Typography
             variant="h4"
-            fontStyle="italic"
             sx={{
-              color: colors.Font[400],
+              color: "text.secondary",
+              fontWeight: 700,
             }}
           >
             {increase}

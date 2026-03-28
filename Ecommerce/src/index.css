@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap");
 
 * {
   margin: 0;
@@ -12,18 +12,30 @@ body,
 .content {
   height: 100%;
   width: 100%;
-  font-family: "SourceSans3", sans-serif;
-  /* background-color: aqua; */
+  font-family: "Inter", sans-serif;
   overflow-x: hidden;
 }
-.content {
-  width: 100% !important;
-}
+
 .app {
   display: flex;
   position: relative;
   width: 100%;
-  /* background-color: red; */
+  min-height: 100%;
+  align-items: stretch;
+}
+
+/* Main column sits beside the drawer; avoids full-width overlap with the sidebar */
+.app > main.content {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.app.admin-shell {
+  min-height: 100vh;
 }
 
 ::-webkit-scrollbar {
@@ -46,7 +58,7 @@ textarea:-webkit-autofill,
 textarea:-webkit-autofill:hover,
 textarea:-webkit-autofill:focus,
 select:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 1000px #7478b1 inset !important; /* 👈 your desired background */
+  -webkit-box-shadow: 0 0 0 1000px #376153 inset !important; /* 👈 your desired background */
   -webkit-text-fill-color: #ffffff; /* text color */
   caret-color: #ffffff;
   transition: background-color 5000s ease-in-out 0s;

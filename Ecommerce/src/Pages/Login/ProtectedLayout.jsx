@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { useLoginInfo } from "../../utils/CustomHooks";
+
 import HomeIcon from "@mui/icons-material/Home";
 import ExploreIcon from "@mui/icons-material/Explore";
 import FoodBankIcon from "@mui/icons-material/FoodBank";
@@ -14,57 +13,35 @@ import ContactSupportIcon from "@mui/icons-material/ContactSupport";
 import RestaurantCard from "../../Components/RestaurantCard";
 import LocationSelector from "../../Components/LocationSelector";
 import { GetColors } from "../../utils/Theme";
-import {
-  Typography,
-  Box,
-  Button,
-  Container,
-  Grid,
-  Chip,
-  useTheme,
-} from "@mui/material";
+import { Typography, Box, Button, Container, Grid, Chip } from "@mui/material";
 import AppSidebar from "../Global/Sidebar";
 import Topbar from "../Global/Topbar";
+import { useSelector } from "react-redux";
+import RestaurantAppBar from "../../Components/RestaurantAppBar";
+import ScrollToTop from "../../Components/ScrollToTop";
 
-const mainMenuItems = [
-  { label: "Main", isHeading: true },
-  { label: "Home", path: "/", icon: <HomeIcon /> },
-
-  { label: "Discover", isHeading: true },
-  {
-    label: "Explore Restaurants",
-    path: "/explore",
-    icon: <FoodBankIcon />,
-  },
-  { label: "Search Food", path: "/ExploreFood", icon: <FastfoodIcon /> },
-  { label: "Offers", path: "/offers", icon: <LocalOfferIcon /> },
-
-  { label: "Orders & Cart", isHeading: true },
-  { label: "My Orders", path: "/orders", icon: <HistoryIcon /> },
-  { label: "Cart", path: "/cart", icon: <ShoppingCartIcon /> },
-  { label: "Favorites", path: "/favorites", icon: <FavoriteIcon /> },
-
-  { label: "Profile & Help", isHeading: true },
-  { label: "Profile", path: "/profile", icon: <AccountCircleIcon /> },
-  { label: "Help & Support", path: "/support", icon: <ContactSupportIcon /> },
-];
+import LocationGuard from "../../Components/LocationGuard";
 
 const ProtectedLayout = () => {
-  const [loginInfo] = useLoginInfo();
-  const [open, SetOpen] = useState(false);
+  const { isAuthenticated, loading } = useSelector((state) => state.auth);
 
-  // Consider user authenticated if we have loginInfo stored
-  if (!loginInfo) {
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
   return (
     <div className="app">
-      <AppSidebar open={open} SetOpen={SetOpen} data={mainMenuItems} />
+      <ScrollToTop />
       <main className="content">
-        <Topbar open={open} SetOpen={SetOpen} />
-        <Box sx={{ p: 2 }}>
-          <Outlet />
+        <RestaurantAppBar />
+        <Box sx={{ p: 0, minHeight: 'calc(100vh - 80px)' }}>
+          <LocationGuard>
+            <Outlet />
+          </LocationGuard>
         </Box>
       </main>
     </div>

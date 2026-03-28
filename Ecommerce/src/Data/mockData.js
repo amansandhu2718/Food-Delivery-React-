@@ -23,7 +23,7 @@ export const mockDataTeam = [
     email: "jaimelannister@gmail.com",
     age: 45,
     phone: "(422)982-6739",
-    access: "user",
+    access: "indiaer",
   },
   {
     id: 4,
@@ -39,7 +39,7 @@ export const mockDataTeam = [
     email: "daenerystargaryen@gmail.com",
     age: 31,
     phone: "(421)445-1189",
-    access: "user",
+    access: "indiaer",
   },
   {
     id: 6,
@@ -55,7 +55,7 @@ export const mockDataTeam = [
     email: "ferraraclifford@gmail.com",
     age: 44,
     phone: "(543)124-0123",
-    access: "user",
+    access: "indiaer",
   },
   {
     id: 8,
@@ -63,7 +63,7 @@ export const mockDataTeam = [
     email: "rossinifrances@gmail.com",
     age: 36,
     phone: "(222)444-5555",
-    access: "user",
+    access: "indiaer",
   },
   {
     id: 9,
@@ -79,7 +79,7 @@ export const mockDataTeam = [
     email: "ferraraclifford@gmail.com",
     age: 44,
     phone: "(543)124-0123",
-    access: "user",
+    access: "indiaer",
   },
   {
     id: 11,
@@ -87,7 +87,7 @@ export const mockDataTeam = [
     email: "rossinifrances@gmail.com",
     age: 36,
     phone: "(222)444-5555",
-    access: "user",
+    access: "indiaer",
   },
   {
     id: 12,
@@ -317,49 +317,49 @@ export const mockDataInvoices = [
 export const mockTransactions = [
   {
     txId: "01e4dsa",
-    user: "johndoe",
+    indiaer: "johndoe",
     date: "2021-09-01",
     cost: "43.95",
   },
   {
     txId: "0315dsaa",
-    user: "jackdower",
+    indiaer: "jackdower",
     date: "2022-04-01",
     cost: "133.45",
   },
   {
     txId: "01e4dsa",
-    user: "aberdohnny",
+    indiaer: "aberdohnny",
     date: "2021-09-01",
     cost: "43.95",
   },
   {
     txId: "51034szv",
-    user: "goodmanave",
+    indiaer: "goodmanave",
     date: "2022-11-05",
     cost: "200.95",
   },
   {
     txId: "0a123sb",
-    user: "stevebower",
+    indiaer: "stevebower",
     date: "2022-11-02",
     cost: "13.55",
   },
   {
     txId: "01e4dsa",
-    user: "aberdohnny",
+    indiaer: "aberdohnny",
     date: "2021-09-01",
     cost: "43.95",
   },
   {
     txId: "120s51a",
-    user: "wootzifer",
+    indiaer: "wootzifer",
     date: "2019-04-15",
     cost: "24.20",
   },
   {
     txId: "0315dsaa",
-    user: "jackdower",
+    indiaer: "jackdower",
     date: "2022-04-01",
     cost: "133.45",
   },
@@ -484,27 +484,27 @@ export const mockLineData = [
     // color: GetColors("dark").greenAccent[500],
     data: [
       {
-        x: "plane",
+        x: "burger",
         y: 101,
       },
       {
-        x: "helicopter",
+        x: "pizza",
         y: 75,
       },
       {
-        x: "boat",
+        x: "noodles",
         y: 36,
       },
       {
-        x: "train",
+        x: "biryani",
         y: 216,
       },
       {
-        x: "subway",
+        x: "ice-cream",
         y: 35,
       },
       {
-        x: "bus",
+        x: "dosa",
         y: 236,
       },
       {
@@ -512,19 +512,19 @@ export const mockLineData = [
         y: 88,
       },
       {
-        x: "moto",
+        x: "chicken tikka",
         y: 232,
       },
       {
-        x: "bicycle",
+        x: "paneer tikka",
         y: 281,
       },
       {
-        x: "horse",
+        x: "waffle",
         y: 1,
       },
       {
-        x: "skateboard",
+        x: "coffee",
         y: 35,
       },
       {
@@ -535,30 +535,30 @@ export const mockLineData = [
   },
   {
     id: "france",
-    color: GetColors("dark").blueAccent[300],
+    color: GetColors("dark").primary.main,
     data: [
       {
-        x: "plane",
+        x: "burger",
         y: 212,
       },
       {
-        x: "helicopter",
+        x: "pizza",
         y: 190,
       },
       {
-        x: "boat",
+        x: "noodles",
         y: 270,
       },
       {
-        x: "train",
+        x: "biryani",
         y: 9,
       },
       {
-        x: "subway",
+        x: "ice-cream",
         y: 75,
       },
       {
-        x: "bus",
+        x: "dosa",
         y: 175,
       },
       {
@@ -566,19 +566,19 @@ export const mockLineData = [
         y: 33,
       },
       {
-        x: "moto",
+        x: "chicken tikka",
         y: 189,
       },
       {
-        x: "bicycle",
+        x: "paneer tikka",
         y: 97,
       },
       {
-        x: "horse",
+        x: "waffle",
         y: 87,
       },
       {
-        x: "skateboard",
+        x: "coffee",
         y: 299,
       },
       {
@@ -588,31 +588,31 @@ export const mockLineData = [
     ],
   },
   {
-    id: "us",
-    color: GetColors("dark").redAccent[200],
+    id: "india",
+    color: GetColors("dark").secondary.main,
     data: [
       {
-        x: "plane",
+        x: "burger",
         y: 191,
       },
       {
-        x: "helicopter",
+        x: "pizza",
         y: 136,
       },
       {
-        x: "boat",
+        x: "noodles",
         y: 91,
       },
       {
-        x: "train",
+        x: "biryani",
         y: 190,
       },
       {
-        x: "subway",
+        x: "ice-cream",
         y: 211,
       },
       {
-        x: "bus",
+        x: "dosa",
         y: 152,
       },
       {
@@ -620,19 +620,19 @@ export const mockLineData = [
         y: 189,
       },
       {
-        x: "moto",
+        x: "chicken tikka",
         y: 152,
       },
       {
-        x: "bicycle",
+        x: "paneer tikka",
         y: 8,
       },
       {
-        x: "horse",
+        x: "waffle",
         y: 197,
       },
       {
-        x: "skateboard",
+        x: "coffee",
         y: 107,
       },
       {
@@ -1157,7 +1157,7 @@ export const mockGeographyData = [
     value: 259318,
   },
   {
-    id: "RUS",
+    id: "Rindia",
     value: 268735,
   },
   {
@@ -1285,7 +1285,7 @@ export const mockGeographyData = [
     value: 753177,
   },
   {
-    id: "USA",
+    id: "indiaA",
     value: 658725,
   },
   {

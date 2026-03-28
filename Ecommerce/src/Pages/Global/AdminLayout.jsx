@@ -1,66 +1,66 @@
 import Topbar from "../Global/Topbar";
 import AppSidebar from "../Global/Sidebar";
-import { Outlet, Navigate } from "react-router-dom";
-import { useLoginInfo } from "../../utils/CustomHooks";
-import { useState } from "react";
-import HomeIcon from "@mui/icons-material/Home";
-import GroupsIcon from "@mui/icons-material/Groups";
-import ContactsIcon from "@mui/icons-material/Contacts";
-import ReceiptIcon from "@mui/icons-material/Receipt";
-import DynamicFormIcon from "@mui/icons-material/DynamicForm";
-import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
-import QuizIcon from "@mui/icons-material/Quiz";
-import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutlined";
-import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
-import StackedLineChartIcon from "@mui/icons-material/StackedLineChart";
-import PublicIcon from "@mui/icons-material/Public";
-import StoreIcon from "@mui/icons-material/Store";
-import PostAddIcon from "@mui/icons-material/PostAdd";
-const menuItems = [
-  { label: "Overview", isHeading: true },
-  { label: "Dashboard", path: "/admin/dashboard", icon: <HomeIcon /> },
+import { Outlet, Navigate, useLocation, matchPath } from "react-router-dom";
+import ScrollToTop from "../../Components/ScrollToTop";
 
-  { label: "Management", isHeading: true },
-  { label: "Restaurant Owners", path: "/admin/owners", icon: <GroupsIcon /> },
-  { label: "Manage Restaurants", path: "/admin/restaurants", icon: <StoreIcon /> },
-  { label: "Contacts", path: "/admin/contacts", icon: <ContactsIcon /> },
-  { label: "Invoices", path: "/admin/invoices", icon: <ReceiptIcon /> },
+import { useMemo, useState } from "react";
 
-  { label: "Pages", isHeading: true },
-  { label: "Create Owner", path: "/admin/create-owner", icon: <DynamicFormIcon /> },
-  { label: "Add Restaurant", path: "/admin/add-restaurant", icon: <PostAddIcon /> },
-  { label: "Calendar", path: "/admin/calendar", icon: <CalendarTodayOutlinedIcon /> },
+import { useSelector } from "react-redux";
+import { buildAdminSidebarMenu } from "./adminMenuMap";
 
-  { label: "Infographics", isHeading: true },
-  { label: "Pie Chart", path: "/admin/pie", icon: <PieChartOutlineOutlinedIcon /> },
-  { label: "Bar Chart", path: "/admin/bar", icon: <BarChartOutlinedIcon /> },
-  { label: "Line Chart", path: "/admin/line", icon: <StackedLineChartIcon /> },
-  { label: "Geography", path: "/admin/geography", icon: <PublicIcon /> },
-];
+function normalizePathname(pathname) {
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    return pathname.slice(0, -1);
+  }
+  return pathname;
+}
+
+function isRestaurantOwnerRouteAllowed(pathname) {
+  const path = normalizePathname(pathname);
+  const allowed = [
+    "/admin",
+    "/admin/dashboard",
+    "/admin/restaurants",
+    "/admin/add-restaurant",
+  ];
+  if (allowed.includes(path)) return true;
+  if (matchPath({ path: "/admin/edit-restaurant/:id", end: true }, path)) {
+    return true;
+  }
+  return false;
+}
+
 const AdminLayout = () => {
-  const [loginInfo] = useLoginInfo();
-  const [open, SetOpen] = useState(false);
+  const { isAuthenticated, loading, user } = useSelector((state) => state.auth);
+  const location = useLocation();
+  const [open, setOpen] = useState(false);
+  const currentRole = user?.role?.toUpperCase();
 
-  // If not logged in, redirect to login
-  if (!loginInfo) return <Navigate to="/login" replace />;
+  const allowedRoles = ["ADMIN", "SUPER_ADMIN", "REST_OWNER"];
 
-  // If logged in but not admin, redirect to main browse page
-  if ((loginInfo.role || "").toUpperCase() !== "ADMIN") {
+  const menuItems = useMemo(
+    () => buildAdminSidebarMenu(user?.role),
+    [user?.role],
+  );
+
+  if (!isAuthenticated || user == null || loading) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!currentRole || !allowedRoles.includes(currentRole)) {
     return <Navigate to="/browse" replace />;
   }
 
+  if (currentRole === "REST_OWNER" && !isRestaurantOwnerRouteAllowed(location.pathname)) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+
   return (
-    // <div className="app">
-    //   <AppSidebar />
-    //   <main className="content">
-    //     <Topbar />
-    //     <Outlet />
-    //   </main>
-    // </div>
-    <div className="app">
-      <AppSidebar open={open} SetOpen={SetOpen} data={menuItems} />
+    <div className="app admin-shell">
+      <ScrollToTop />
+      <AppSidebar open={open} SetOpen={setOpen} data={menuItems} />
       <main className="content">
-        <Topbar open={open} SetOpen={SetOpen} />
+        <Topbar open={open} SetOpen={setOpen} />
         <Outlet />
       </main>
     </div>

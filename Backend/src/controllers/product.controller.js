@@ -11,7 +11,8 @@ exports.getAllProducts = async (req, res) => {
       p.menu_category AS "menuCategory",
       p.price,
       p.has_offer AS "hasOffer",
-      p.promo
+      p.promo,
+      (SELECT restaurant_id FROM restaurant_menu WHERE product_id = p.id LIMIT 1) AS "restaurantId"
     FROM products p
     ORDER BY p.created_at DESC
   `);

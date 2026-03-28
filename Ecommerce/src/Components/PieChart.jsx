@@ -4,10 +4,18 @@ import { ResponsivePie } from "@nivo/pie";
 
 export default function PieChart({
   data,
-  fontColor = "#ff0000",
-  bgColor = "#0000ff",
+  fontColor,
+  bgColor,
   isDashboard = false,
 }) {
+  const theme = useTheme();
+  const colors = [
+    theme.palette.primary.main,
+    theme.palette.secondary.main,
+    theme.palette.primary.light,
+    theme.palette.secondary.light,
+    "#064e3b", // Emerald 900
+  ];
   return (
     <Box
       sx={{
@@ -19,7 +27,8 @@ export default function PieChart({
         theme={{
           tooltip: {
             container: {
-              color: bgColor,
+              color: theme.palette.mode === "dark" ? "#ffffff" : "#171717",
+              background: theme.palette.background.paper,
             },
           },
           axis: {
@@ -55,7 +64,7 @@ export default function PieChart({
         padAngle={0.6}
         cornerRadius={2}
         activeOuterRadiusOffset={8}
-        colors={{ scheme: "set2" }}
+        colors={colors}
         arcLinkLabelsSkipAngle={10}
         arcLinkLabelsTextColor={fontColor}
         arcLinkLabelsThickness={2}

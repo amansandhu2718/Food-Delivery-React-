@@ -14,9 +14,9 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Divider,
   Grid,
   useTheme,
+  Stack,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
@@ -76,211 +76,122 @@ function OrdersPage() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box display="flex" alignItems="center" gap={2} mb={4}>
-        <ReceiptIcon sx={{ fontSize: 40 }} />
-        <Typography variant="h4" fontWeight={700}>
-          My Orders
-        </Typography>
-      </Box>
+    <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 8 }}>
+      <Container maxWidth="xxl" sx={{ px: { xs: 2, md: 8 } }}>
+        {/* Header */}
+        <Box sx={{ mb: 6 }}>
+          <Typography sx={{ color: "primary.main", fontWeight: 900, fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.3em", mb: 0.5 }}>
+            Archive
+          </Typography>
+          <Typography variant="h3" sx={{ fontWeight: 800 }}>
+            Your Journals
+          </Typography>
+        </Box>
 
-      {orders.length === 0 ? (
-        <Card sx={{ boxShadow: 3 }}>
-          <CardContent sx={{ textAlign: "center", py: 8 }}>
-            <ReceiptIcon
-              sx={{ fontSize: 80, color: "text.secondary", mb: 2 }}
-            />
-            <Typography variant="h6" color="text.secondary" mb={2}>
-              No orders yet
+        {orders.length === 0 ? (
+          <Box
+            sx={{
+              textAlign: "center",
+              py: 12,
+              bgcolor: "background.paper",
+              borderRadius: "48px",
+              border: "1px solid " + (theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"),
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center"
+            }}
+          >
+            <ReceiptIcon sx={{ fontSize: 64, color: "text.disabled", mb: 3 }} />
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>No orders yet</Typography>
+            <Typography sx={{ color: "text.secondary", mb: 4, maxWidth: 300 }}>
+              Your Cravvy history is waiting to be written. Start your first journey today.
             </Typography>
-            <Typography variant="body2" color="text.secondary" mb={3}>
-              Start ordering to see your order history here
-            </Typography>
-            <Button variant="contained" onClick={() => navigate("/Explore")}>
-              Browse Restaurants
+            <Button
+              variant="contained"
+              disableElevation
+              onClick={() => navigate("/Explore")}
+              sx={{
+                borderRadius: "100px",
+                px: 6,
+                py: 1.5,
+                fontWeight: 800,
+                bgcolor: "primary.main"
+              }}
+            >
+              Begin Discovery
             </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          {orders.map((order) => (
-            <Card key={order.id} sx={{ boxShadow: 3 }}>
-              <CardContent>
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="start"
-                  mb={2}
-                >
+          </Box>
+        ) : (
+          <Stack spacing={4}>
+            {orders.map((order) => (
+              <Box
+                key={order.id}
+                sx={{
+                  bgcolor: "background.paper",
+                  borderRadius: "40px",
+                  p: { xs: 3, md: 5 },
+                  border: "1px solid " + (theme.palette.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"),
+                  transition: "all 0.3s ease",
+                  "&:hover": { boxShadow: theme.palette.mode === "dark" ? "0 20px 40px rgba(0,0,0,0.4)" : "0 20px 40px rgba(0,0,0,0.04)" }
+                }}
+              >
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 2, mb: 4 }}>
                   <Box>
-                    <Typography variant="h6" fontWeight={600} mb={1}>
-                      Order #{order.id.slice(0, 8).toUpperCase()}
+                    <Typography sx={{ color: "primary.main", fontWeight: 800, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.1em", mb: 1 }}>
+                      JOURNAL #{order.id.slice(-8).toUpperCase()}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="h4" sx={{ fontWeight: 900, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      {order.restaurantName}
+                    </Typography>
+                    <Typography sx={{ color: "text.secondary", fontWeight: 600, fontSize: "0.85rem" }}>
                       {formatDate(order.createdAt)}
                     </Typography>
                   </Box>
-                  <Box textAlign="right">
-                    <Typography variant="h6" color="primary" fontWeight={600}>
+                  <Box sx={{ textAlign: { xs: "left", md: "right" } }}>
+                    <Typography sx={{ fontWeight: 900, fontSize: "1.75rem", color: "text.primary", lineHeight: 1 }}>
                       ₹{formatPrice(order.totalAmount)}
                     </Typography>
-                    {order.promoUsed && (
-                      <Chip
-                        label={`Promo: ${order.promoUsed}`}
-                        size="small"
-                        color="success"
-                        sx={{ mt: 0.5 }}
-                      />
-                    )}
+                    <Typography sx={{ color: "secondary.main", fontWeight: 800, fontSize: "0.75rem", mt: 1 }}>
+                      TXN COMPLETED
+                    </Typography>
                   </Box>
                 </Box>
 
-                {order.restaurantName && (
-                  <Box
-                    display="flex"
-                    alignItems="center"
-                    gap={1}
-                    mb={2}
-                    sx={{
-                      p: 1.5,
-                      bgcolor:
-                        theme.palette.mode === "dark"
-                          ? "rgba(255,255,255,0.05)"
-                          : "rgba(0,0,0,0.02)",
-                      borderRadius: 1,
-                    }}
-                  >
-                    {order.restaurantImage && (
-                      <CardMedia
+                <Divider sx={{ mb: 4, opacity: 0.5 }} />
+
+                <Box sx={{ display: "grid", gap: 3, gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" } }}>
+                  {order.items?.map((item) => (
+                    <Box key={item.id} sx={{ display: "flex", gap: 3, alignItems: "center" }}>
+                      <Box
                         component="img"
-                        sx={{
-                          width: 50,
-                          height: 50,
-                          borderRadius: 1,
-                          objectFit: "cover",
-                        }}
-                        image={
-                          order.restaurantImage &&
-                          order.restaurantImage.trim() !== ""
-                            ? order.restaurantImage
-                            : "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400"
-                        }
-                        alt={order.restaurantName}
-                        onError={(e) => {
-                          e.target.src =
-                            "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400";
-                        }}
+                        src={item.productImage || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100"}
+                        sx={{ width: 64, height: 64, borderRadius: "20px", objectFit: "cover" }}
                       />
-                    )}
-                    <Box flex={1}>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <RestaurantIcon fontSize="small" color="primary" />
-                        <Typography variant="subtitle1" fontWeight={600}>
-                          {order.restaurantName}
+                      <Box>
+                        <Typography sx={{ fontWeight: 800, fontSize: "1rem" }}>{item.productName}</Typography>
+                        <Typography sx={{ color: "text.secondary", fontSize: "0.75rem", fontWeight: 600 }}>
+                          {item.quantity} × ₹{formatPrice(item.price)}
                         </Typography>
                       </Box>
                     </Box>
-                  </Box>
-                )}
+                  ))}
+                </Box>
 
-                <Divider sx={{ my: 2 }} />
-
-                <Accordion>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="body1" fontWeight={600}>
-                      Order Items ({order.items?.length || 0})
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Box
-                      sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-                    >
-                      {order.items?.map((item) => (
-                        <Box
-                          key={item.id}
-                          display="flex"
-                          gap={2}
-                          sx={{
-                            p: 1.5,
-                            bgcolor:
-                              theme.palette.mode === "dark"
-                                ? "rgba(255,255,255,0.03)"
-                                : "rgba(0,0,0,0.01)",
-                            borderRadius: 1,
-                          }}
-                        >
-                          {item.productImage && (
-                            <CardMedia
-                              component="img"
-                              sx={{
-                                width: 60,
-                                height: 60,
-                                borderRadius: 1,
-                                objectFit: "cover",
-                              }}
-                              image={
-                                item.productImage &&
-                                item.productImage.trim() !== ""
-                                  ? item.productImage
-                                  : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"
-                              }
-                              alt={item.productName}
-                              onError={(e) => {
-                                e.target.src =
-                                  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400";
-                              }}
-                            />
-                          )}
-                          <Box flex={1}>
-                            <Typography variant="subtitle2" fontWeight={600}>
-                              {item.productName}
-                            </Typography>
-                            {item.category && (
-                              <Typography
-                                variant="caption"
-                                color="text.secondary"
-                              >
-                                {item.category}
-                              </Typography>
-                            )}
-                            <Box
-                              display="flex"
-                              justifyContent="space-between"
-                              alignItems="center"
-                              mt={1}
-                            >
-                              <Typography
-                                variant="body2"
-                                color="text.secondary"
-                              >
-                                Qty: {item.quantity}
-                              </Typography>
-                              <Typography variant="body2" fontWeight={600}>
-                                ₹{formatPrice(item.price * item.quantity)}
-                              </Typography>
-                            </Box>
-                          </Box>
-                        </Box>
-                      ))}
-                    </Box>
-                  </AccordionDetails>
-                </Accordion>
-
-                <Box display="flex" justifyContent="flex-end" mt={2}>
+                <Box sx={{ mt: 5, pt: 4, borderTop: "1px solid " + theme.palette.divider, display: "flex", justifyContent: "flex-end" }}>
                   <Button
-                    variant="outlined"
-                    size="small"
+                    variant="text"
                     onClick={() => navigate(`/orders/${order.id}`)}
+                    sx={{ color: "text.secondary", fontWeight: 700, fontSize: "0.85rem", "&:hover": { color: "primary.main", bgcolor: "transparent" } }}
                   >
                     View Details
                   </Button>
                 </Box>
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
-      )}
-    </Container>
+              </Box>
+            ))}
+          </Stack>
+        )}
+      </Container>
+    </Box>
   );
 }
 

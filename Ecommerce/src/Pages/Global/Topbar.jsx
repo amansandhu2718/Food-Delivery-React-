@@ -3,11 +3,14 @@ import {
   IconButton,
   InputBase,
   Tooltip,
+  Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
 import { useContext, useState } from "react";
-import { ColorModeContext, GetColors } from "../../utils/Theme";
+import { useDispatch } from "react-redux";
+import { toggleTheme } from "../../redux/Slices/themeSlice";
+import { GetColors } from "../../utils/Theme";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
@@ -20,116 +23,113 @@ import Badge from "@mui/material/Badge";
 import LocationSelector from "../../Components/LocationSelector";
 import AIChatDialog from "../../Components/AIChatDialog";
 
-import { useLocation } from "react-router-dom"; // Added
+import { useNavigate } from "react-router-dom"; // Added
 
 const Topbar = (props) => {
   const theme = useTheme();
-  const colors = GetColors(theme.palette.mode);
-  const colorMode = useContext(ColorModeContext);
+  const Navigate = useNavigate();
+  const dispatch = useDispatch();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [aiChatOpen, setAiChatOpen] = useState(false);
-  const location = useLocation(); // Added
-
-  const isHomePage = location.pathname === "/" || location.pathname === "/browse";
 
   return (
     <Box
       sx={{
         display: "flex",
         justifyContent: "space-between",
-        // alignItems: "center",
-        padding: 2,
+        alignItems: "center",
+        padding: "12px 24px",
+        bgcolor: "background.paper",
+        borderBottom:
+          "1px solid " +
+          (theme.palette.mode === "dark"
+            ? "rgba(255,255,255,0.05)"
+            : "rgba(0,0,0,0.05)"),
+        boxShadow:
+          theme.palette.mode === "light"
+            ? "0 2px 10px rgba(0,0,0,0.02)"
+            : "none",
+        zIndex: 10,
       }}
     >
       <Box
         sx={{
           display: "flex",
+          alignItems: "center",
         }}
       >
         {isMobile && (
-          <IconButton onClick={() => props.SetOpen(true)}>
+          <IconButton onClick={() => props.SetOpen(true)} sx={{ mr: 1 }}>
             <MenuIcon />
           </IconButton>
         )}
-        <Box
+        <Typography
           sx={{
-            marginLeft: 1,
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontWeight: 900,
+            fontSize: "1.85rem",
+            color: "primary.main",
+            letterSpacing: "-0.07em",
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+            "&:hover": { transform: "scale(1.02)", opacity: 0.9 },
             display: "flex",
-            backgroundColor: colors.primary[300],
-            borderRadius: "3px",
-            transition: "border-color 0.2s ease",
-            "&:focus-within": {
-              outline: "2px solid " + colors.grey[300],
-            },
+            alignItems: "baseline",
           }}
+          onClick={() => Navigate("/")}
         >
-          <LocationSelector />
-
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              transition: "max-width 0.5s ease-in-out, opacity 0.5s ease-in-out",
-              maxWidth: isHomePage ? 0 : "400px",
-              opacity: isHomePage ? 0 : 1,
-              overflow: "hidden",
-            }}
-          >
-            <InputBase
-              placeholder="Search"
-              sx={{
-                ml: 2,
-                flex: 1,
-                display: isMobile ? "none" : "flex",
-                whiteSpace: "nowrap",
-              }}
-            />
-            <Tooltip title="Search">
-              <IconButton
-                type="button"
-                sx={{ p: 1, display: isMobile ? "none" : "block" }}
-              >
-                <SearchOutlinedIcon
-                  sx={{
-                    display: isMobile ? "none" : "block",
-                  }}
-                />
-              </IconButton>
-            </Tooltip>
+          Cravvy
+          <Box component="span" sx={{ color: "secondary.main" }}>
+            .
           </Box>
-        </Box>
+        </Typography>
       </Box>
 
       <Box
         sx={{
           display: "flex",
+          alignItems: "center",
+          gap: 1,
         }}
       >
-        <IconButton onClick={colorMode.toggleColorMode}>
+        <IconButton
+          onClick={() => dispatch(toggleTheme())}
+          sx={{ border: "1px solid " + theme.palette.divider }}
+        >
           {theme.palette.mode == "dark" ? (
-            <>
-              <Tooltip title="Light Mode">
-                <DarkModeOutlinedIcon />
-              </Tooltip>
-            </>
+            <Tooltip title="Light Mode">
+              <DarkModeOutlinedIcon fontSize="small" />
+            </Tooltip>
           ) : (
-            <>
-              <Tooltip title="Dark Mode">
-                <LightModeOutlinedIcon />
-              </Tooltip>
-            </>
+            <Tooltip title="Dark Mode">
+              <LightModeOutlinedIcon fontSize="small" />
+            </Tooltip>
           )}
         </IconButton>
-        <Badge color="error" overlap="circular" badgeContent="2">
+
+        <Badge
+          color="error"
+          overlap="circular"
+          badgeContent="2"
+          sx={{ "& .MuiBadge-badge": { fontWeight: 900, fontSize: "0.6rem" } }}
+        >
           <Tooltip title="Notifications">
-            <IconButton>
-              <NotificationsOutlinedIcon />
+            <IconButton sx={{ border: "1px solid " + theme.palette.divider }}>
+              <NotificationsOutlinedIcon fontSize="small" />
             </IconButton>
           </Tooltip>
         </Badge>
+
         <Tooltip title="AI Assistant">
-          <IconButton onClick={() => setAiChatOpen(true)}>
-            <AutoAwesomeIcon />
+          <IconButton
+            onClick={() => setAiChatOpen(true)}
+            sx={{
+              bgcolor: "secondary.main",
+              color: "white",
+              "&:hover": { bgcolor: "secondary.dark" },
+            }}
+          >
+            <AutoAwesomeIcon fontSize="small" />
           </IconButton>
         </Tooltip>
       </Box>

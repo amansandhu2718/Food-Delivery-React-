@@ -57,8 +57,8 @@
 
 // export default App;
 
-import { CssBaseline, ThemeProvider } from "@mui/material";
-import { ColorModeContext, useMode } from "./utils/Theme";
+import { CssBaseline, ThemeProvider, createTheme } from "@mui/material";
+import { themeSettings } from "./utils/Theme";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Dashboard from "./Pages/Dashboard/Index";
 import Team from "./Pages/Teams/Team";
@@ -79,10 +79,9 @@ import ProtectedLayout from "./Pages/Login/ProtectedLayout";
 import Browse from "./Pages/Browse/Browse";
 import PublicRoutes from "./Pages/Login/PublicRoutes";
 import AdminLayout from "./Pages/Global/AdminLayout";
-import { useLoginInfo } from "./utils/CustomHooks";
-import { useEffect, useState } from "react";
+
+import { useEffect, useState, useMemo } from "react";
 import api from "./utils/api";
-import { clearAccessToken, setAccessToken } from "./utils/authService";
 import RestaurantsPage from "./Pages/Restautant/RestaurantsPage";
 import FoodPage from "./Pages/Food/FoodPage";
 import MenuPage from "./Pages/Menu/MenuPage";
@@ -96,27 +95,42 @@ import EditRestaurant from "./Pages/Dashboard/EditRestaurant";
 import OrdersPage from "./Pages/Orders/OrdersPage";
 import SupportPage from "./Pages/Support/SupportPage";
 import FavoritesPage from "./Pages/Favorites/FavoritesPage";
+import { useSelector, useDispatch } from "react-redux";
+
+import { loginSuccess, logout } from "./redux/Slices/authSlice";
+import { clearAccessToken, setAccessToken } from "./utils/authService";
 function App() {
-  const [theme, colorMode] = useMode();
-  const [loginInfo, SetLoginInfo] = useLoginInfo();
-  const [loading, setLoading] = useState(true); // NEW
+  const mode = useSelector((state) => state.theme.mode);
+  const theme = useMemo(() => createTheme(themeSettings(mode)), [mode]);
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const init = async () => {
+    const checkAuth = async () => {
       try {
+        // Try to refresh token and get user info
         const res = await api.post("/api/auth/refresh");
-        console.log(res);
-        setAccessToken(res.data.accessToken);
-        SetLoginInfo(res.data.user);
+        if (res.data?.accessToken) {
+          setAccessToken(res.data.accessToken);
+          localStorage.setItem("accessToken", res.data.accessToken);
+        }
+        dispatch(
+          loginSuccess({
+            user: res.data.user,
+            accessToken: res.data.accessToken,
+          }),
+        );
       } catch {
+        // If refresh fails, clear everything
         clearAccessToken();
-        SetLoginInfo(null);
+        localStorage.removeItem("accessToken");
+        dispatch(logout());
       } finally {
-        setLoading(false); // NEW
+        setLoading(false);
       }
     };
-    init();
-  }, []);
+    checkAuth();
+  }, [dispatch]);
   const appRouter = createBrowserRouter([
     /**
      * Public routes
@@ -161,7 +175,7 @@ function App() {
     {
       element: <AdminLayout />,
       children: [
-        { path: "/admin/", element: <Dashboard /> },
+        { path: "/admin", element: <Dashboard /> },
         { path: "/admin/dashboard", element: <Dashboard /> },
         { path: "/admin/owners", element: <Team /> },
         { path: "/admin/contacts", element: <Contacts /> },
@@ -185,18 +199,16 @@ function App() {
 
   return (
     <>
-      <ColorModeContext.Provider value={colorMode}>
         <ThemeProvider theme={theme}>
-          <CssBaseline /> {/* <-- This must always be rendered */}
+          <CssBaseline />
           {loading ? (
             <div style={{ textAlign: "center", marginTop: "2rem" }}>
-              Logging in...
+              Checking authentication...
             </div>
           ) : (
             <RouterProvider router={appRouter} />
           )}
         </ThemeProvider>
-      </ColorModeContext.Provider>
       <ToastContainer />
     </>
   );
